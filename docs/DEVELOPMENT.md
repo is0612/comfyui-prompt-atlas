@@ -17,13 +17,18 @@
 npm install
 npm run dev      # http://localhost:5273
 npm test         # 129 条单测，约 2 秒
+npm run lint     # ESLint，静态检查
 npm run build    # vue-tsc --noEmit 做类型检查，再打包到 dist/
 npm run preview  # 本地预览 dist/
 ```
 
 `npm run data:check` 可以确认批量角色数据与生成脚本是否一致（见 §8）。
 
-类型检查是 `build` 的一部分，`strict` + `noUnusedLocals` + `noUnusedParameters` 全开，所以**删了东西没清干净 import 会直接构建失败**，这是件好事。测试文件也在 `src/` 下，同样受这套检查约束。仍是零 lint（见 §11）。
+四个命令各管一件事：`test` 管行为、`lint` 管静态问题、`build` 里的 `vue-tsc` 管类型、`data:check` 管数据与脚本是否一致。
+
+类型检查是 `build` 的一部分，`strict` + `noUnusedLocals` + `noUnusedParameters` 全开，所以**删了东西没清干净 import 会直接构建失败**，这是件好事。测试文件也在 `src/` 下，同样受这套检查约束。
+
+ESLint 只开「会出 bug」的规则（`flat/essential` + `@typescript-eslint/recommended`），缩进、换行、属性顺序这类纯风格规则**故意不开** —— 组件模板偏好紧凑单行，开了只会刷一屏噪音，把真问题埋掉。
 
 ## 3. 目录结构
 
@@ -227,6 +232,9 @@ tools/
 - **Pony 的负向自适应完全失效**：负向词写成 `(bad anatomy:1.2)`，比较时没剥权重，规则只对 WAI 生效。现在统一剥掉权重再比。
 - **删掉一条死规则**：`from_behind` 剔除的 `looking_at_viewer` 不在任何负向词表里，永远不会生效。
 - **生成脚本入库**：`tools/build_characters.py`，配 `data:characters` / `data:check` 两个命令，重跑结果与现有文件逐字节一致（除文件头注释）。
+- **接入 ESLint 9**：首跑只报 4 条，都是真问题，不是风格噪音 ——
+  `ImportDialog` 在 `computed` 里写 `ref`（computed 必须是纯的），改成一次算出 `{ parsed, error }`；
+  `TagChip` 的 prop 叫 `slot`（Vue 的保留 attribute），改名 `slotKey`。
 
 ### P0 · 会造成损失
 
@@ -234,9 +242,9 @@ tools/
 
 ### P1 · 缺工程保障
 
-**没有 lint / format。** 类型检查够严（连测试文件一起查），但没人管组件里的模板顺序、未使用的 CSS、魔法数字。`eslint` + `eslint-plugin-vue` + Prettier，半小时的事。
+**没有接 Prettier。** lint 只管静态问题，格式仍靠手写。好处是不会因为格式化产生大范围无关 diff；坏处是多人协作时风格可能漂移。
 
-**没有跑在 CI 上。** 三个命令（`test` / `build` / `data:check`）都是本地的，需要人记得跑。仓库还没有远程，接上之后加一个最小 workflow 就够。
+**没有跑在 CI 上。** 四个命令（`test` / `lint` / `build` / `data:check`）都是本地的，需要人记得跑。仓库还没有远程，接上之后加一个最小 workflow 就够。
 
 ### P2 · 结构
 

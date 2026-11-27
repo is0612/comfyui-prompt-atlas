@@ -6,18 +6,24 @@ import { importCharacters, notify, ui } from '../store'
 
 const text = ref('')
 const fallbackGame = ref('')
-const error = ref('')
 
-const parsed = computed(() => {
-  error.value = ''
-  if (!text.value.trim()) return null
+/**
+ * 解析结果和错误一起算出来。
+ * 原来是 computed 里直接写 error.value —— computed 必须是纯的，副作用会让
+ * error 的更新时机依赖「谁先读了 parsed」，刷新顺序一变就会闪一下旧错误。
+ */
+const result = computed(() => {
+  const raw = text.value.trim()
+  if (!raw) return { parsed: null, error: '' }
   try {
-    return parseCharacters(text.value)
+    return { parsed: parseCharacters(raw), error: '' }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : '解析失败'
-    return null
+    return { parsed: null, error: err instanceof Error ? err.message : '解析失败' }
   }
 })
+
+const parsed = computed(() => result.value.parsed)
+const error = computed(() => result.value.error)
 
 const gamesFound = computed(() => {
   const out: string[] = []

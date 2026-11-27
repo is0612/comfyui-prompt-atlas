@@ -118,7 +118,7 @@ function onDragOver(target: string, event: DragEvent) {
           <button class="x" title="移除角色" @click.stop="toggleChar(char.en)"><BaseIcon name="x" :size="12" /></button>
         </div>
         <div class="chips">
-          <TagChip v-for="tag in slotTags(char.en)" :key="tag.en" :slot="char.en" :tag="tag" />
+          <TagChip v-for="tag in slotTags(char.en)" :key="tag.en" :slot-key="char.en" :tag="tag" />
           <span v-if="!slotTags(char.en).length" class="hintdrop">拖标签进来</span>
         </div>
       </div>
@@ -146,7 +146,7 @@ function onDragOver(target: string, event: DragEvent) {
           <button v-if="globalTags.length" class="x" @click.stop="clearSlot('')"><BaseIcon name="x" :size="12" /></button>
         </div>
         <div class="chips">
-          <TagChip v-for="tag in globalTags" :key="tag.en" slot="" :tag="tag" />
+          <TagChip v-for="tag in globalTags" :key="tag.en" slot-key="" :tag="tag" />
           <span v-if="!globalTags.length" class="hintdrop">场景、画风拖到这</span>
         </div>
       </div>

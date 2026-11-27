@@ -9,6 +9,8 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "data:characters": "python tools/build_characters.py",
     "data:check": "python tools/build_characters.py --check",
     "preview": "vite preview"
@@ -17,9 +19,13 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^26.6.11",
     "@vitejs/plugin-vue": "^5.2.1",
+    "eslint": "^9.39.5",
+    "eslint-plugin-vue": "^10.12.1",
     "typescript": "~5.7.2",
+    "typescript-eslint": "^8.74.0",
     "vite": "^6.0.7",
     "vitest": "^3.2.7",
     "vue-tsc": "^2.2.0"

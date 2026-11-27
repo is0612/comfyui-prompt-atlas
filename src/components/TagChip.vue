@@ -8,7 +8,8 @@ import type { SlotTag } from '../types'
 /** 快速加权：Alt+点一下 1.3，再点一下还原 */
 const BOOST = 1.3
 
-const props = defineProps<{ slot: string; tag: SlotTag }>()
+// 不要叫 slot：slot 是 Vue 的保留 attribute，将来可能不再作为 prop 传进来
+const props = defineProps<{ slotKey: string; tag: SlotTag }>()
 
 const dragging = ref(false)
 const editing = ref(false)
@@ -22,7 +23,7 @@ const hasWeight = computed(() => (props.tag.w ?? 1) !== 1)
 function onClick(event: MouseEvent) {
   if (event.altKey) {
     event.preventDefault()
-    setTagWeight(props.slot, props.tag.en, (props.tag.w ?? 1) === BOOST ? 1 : BOOST)
+    setTagWeight(props.slotKey, props.tag.en, (props.tag.w ?? 1) === BOOST ? 1 : BOOST)
     return
   }
   if (ui.weightMode) return
@@ -35,13 +36,13 @@ function onClick(event: MouseEvent) {
   }
   clickTimer = window.setTimeout(() => {
     clickTimer = null
-    removeSlotTag(props.slot, props.tag.en)
+    removeSlotTag(props.slotKey, props.tag.en)
   }, 180)
 }
 
 function onDragStart(event: DragEvent) {
   dragging.value = true
-  startDrag({ from: props.slot, zh: props.tag.zh, en: props.tag.en }, event)
+  startDrag({ from: props.slotKey, zh: props.tag.zh, en: props.tag.en }, event)
 }
 
 function onDragEnd() {
@@ -59,7 +60,7 @@ async function startEdit() {
 }
 
 function commit() {
-  renameSlotTag(props.slot, props.tag.en, { zh: draft.zh, en: draft.en })
+  renameSlotTag(props.slotKey, props.tag.en, { zh: draft.zh, en: draft.en })
   editing.value = false
 }
 
@@ -104,11 +105,11 @@ function cancel() {
       <span class="zh">{{ tag.zh }}</span>
       <span v-if="hasWeight && !ui.weightMode" class="wbadge">{{ weightOf }}</span>
       <span v-if="ui.weightMode" class="wt">
-        <span class="wt-btn" @click.stop="bumpWeight(slot, tag.en, -0.1)">−</span>
+        <span class="wt-btn" @click.stop="bumpWeight(slotKey, tag.en, -0.1)">−</span>
         <b>{{ weightOf }}</b>
-        <span class="wt-btn" @click.stop="bumpWeight(slot, tag.en, 0.1)">+</span>
+        <span class="wt-btn" @click.stop="bumpWeight(slotKey, tag.en, 0.1)">+</span>
       </span>
-      <BaseIcon name="x" :size="10" @click.stop="removeSlotTag(slot, tag.en)" />
+      <BaseIcon name="x" :size="10" @click.stop="removeSlotTag(slotKey, tag.en)" />
     </template>
   </div>
 </template>
