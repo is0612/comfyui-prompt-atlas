@@ -116,12 +116,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   min-height: 0;
 }
 
-/* 拼装区按内容长，最多占一半；词库吃掉剩下的高度。
-   ⚠️ 这里必须 shrink:0 —— 词库内容很长，否则负空间会把拼装区一起压扁 */
+/* 拼装区按内容长，最多占 42%；词库吃掉剩下的高度。
+   ⚠️ 这里必须 shrink:0 —— 词库内容很长，否则负空间会把拼装区一起压扁。
+   上限从 50% 收到 42%：拼装区改成一格一行之后本来就矮，多出来的高度留给词库 */
 .middle > :first-child {
   flex: 0 0 auto;
-  min-height: 196px;
-  max-height: 50%;
+  max-height: 42%;
 }
 
 .middle > :last-child {

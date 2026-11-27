@@ -6,7 +6,7 @@ import { DEFAULT_AI_BASE, DEFAULT_AI_MODEL, DEFAULT_AI_SYSTEM, LEGACY_AI_SYSTEMS
 import { buildOutputs } from './lib/prompt'
 import type { ParseResult } from './lib/parse'
 import { isGlobalCategory } from './types'
-import type { Character, HistoryEntry, Settings, SlotTag, TagItem } from './types'
+import type { Character, HistoryEntry, Settings, SlotTag, TagItem, Target } from './types'
 
 const LS_KEY = 'prompt-atlas/v3'
 const HISTORY_LIMIT = 30
@@ -37,6 +37,8 @@ interface Snapshot {
   history: HistoryEntry[]
   favorites: string[]
   charFavorites: string[]
+  view?: Partial<ViewState>
+  recentChars?: string[]
 }
 
 function readSnapshot(): Partial<Snapshot> {
@@ -91,6 +93,30 @@ export const history = ref<HistoryEntry[]>(saved.history ?? [])
 export const favorites = ref<string[]>(saved.favorites ?? [])
 /** 收藏的角色 en：168 个角色里反复用的就那几个，给个置顶入口 */
 export const charFavorites = ref<string[]>(saved.charFavorites ?? [])
+/** 最近加进拼装的角色 en，新的在前：下次打开不用再从 168 个里翻 */
+export const recentChars = ref<string[]>(saved.recentChars ?? [])
+
+/**
+ * 视图状态：刷新后该留在原处的东西。
+ * 和 ui 的区别是这些要落盘 —— 上次在看哪个模型、哪个游戏、有没有展开负向，
+ * 重新打开还在原处，不用每次从头点一遍。
+ */
+export interface ViewState {
+  lastTarget: Target
+  showNegative: boolean
+  atlasGame: string
+  selectionExpandAll: boolean
+  outputExpandAll: boolean
+}
+
+export const view = reactive<ViewState>({
+  lastTarget: 'wai',
+  showNegative: false,
+  atlasGame: '',
+  selectionExpandAll: false,
+  outputExpandAll: false,
+  ...saved.view,
+})
 
 export const ui = reactive({
   settingsOpen: false,
@@ -101,10 +127,13 @@ export const ui = reactive({
   polishOpen: false,
   pasteOpen: false,
   styleOpen: false,
-  /** 默认不展开负向：多数时候只看正向，三块正负向一起铺开会把面板拖得很长 */
-  showNegative: false,
   /** 拼装区是否展示权重调节 */
   weightMode: false,
+  /**
+   * 每自增一次，就把焦点送到词库搜索框。
+   * 用计数而不是布尔：连点两次「+ 标签」也要能第二次再聚焦。
+   */
+  libraryFocus: 0,
   editing: null as Character | null,
 })
 
@@ -487,6 +516,7 @@ export function toggleChar(en: string) {
     selectedChars.value.push(en)
     if (!charTags.value[en]) charTags.value[en] = []
     activeSlot.value = en
+    recentChars.value = [en, ...recentChars.value.filter((x) => x !== en)].slice(0, 12)
   }
 }
 
@@ -621,6 +651,14 @@ export function resetAll() {
   history.value = []
   favorites.value = []
   charFavorites.value = []
+  recentChars.value = []
+  Object.assign(view, {
+    lastTarget: 'wai',
+    showNegative: false,
+    atlasGame: '',
+    selectionExpandAll: false,
+    outputExpandAll: false,
+  })
   undoStack.value = []
   redoStack.value = []
   notify('本地数据已清空')
@@ -644,6 +682,8 @@ function persist() {
       history: history.value,
       favorites: favorites.value,
       charFavorites: charFavorites.value,
+      view: { ...view },
+      recentChars: recentChars.value,
     }
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(snapshot))
@@ -657,7 +697,20 @@ function persist() {
 }
 
 watch(
-  [settings, overrides, hidden, customTags, selectedChars, globalTags, charTags, history, favorites, charFavorites],
+  [
+    settings,
+    overrides,
+    hidden,
+    customTags,
+    selectedChars,
+    globalTags,
+    charTags,
+    history,
+    favorites,
+    charFavorites,
+    view,
+    recentChars,
+  ],
   persist,
   { deep: true },
 )

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import BaseIcon from './BaseIcon.vue'
 import { LIB_SLOT, endDrag, startDrag } from '../lib/dnd'
 import {
@@ -16,6 +16,7 @@ import {
   settings,
   toggleFavorite,
   toggleLibraryTag,
+  ui,
 } from '../store'
 import { CATEGORIES, isGlobalCategory, type Category, type TagItem } from '../types'
 
@@ -25,6 +26,15 @@ const sub = ref('')
 const favOnly = ref(false)
 const adding = ref(false)
 const form = ref({ zh: '', en: '', sub: '' })
+/** 拼装区的空槽点「+ 标签」时把焦点送到这里 */
+const searchInput = ref<HTMLInputElement | null>(null)
+
+watch(
+  () => ui.libraryFocus,
+  () => {
+    void nextTick(() => searchInput.value?.focus())
+  },
+)
 
 /** 头部那句「点一下加到 X」：场景 / 风格分类下永远是全局，先说明再点，别让人猜 */
 const target = computed(() => {
@@ -101,7 +111,10 @@ function submit() {
         补充标签
         <small>{{ list.length }} 条</small>
       </div>
-      <span class="target">点一下加到 <b>{{ target }}</b></span>
+      <span class="target">
+        加到 <b>{{ target }}</b>
+        <em v-if="!activeSlot && !isGlobalCategory(active)">未选角色</em>
+      </span>
     </div>
 
     <div class="bar">
@@ -124,16 +137,18 @@ function submit() {
           ★{{ favOnly || !favorites.length ? '' : favorites.length }}
         </button>
       </div>
-      <div class="search">
-        <BaseIcon name="search" :size="14" />
-        <input v-model="query" placeholder="搜中文 / 英文" spellcheck="false" />
-        <button v-if="query" class="mini" @click="query = ''"><BaseIcon name="x" :size="12" /></button>
-      </div>
-      <div v-if="subs.length && !query" class="subs">
-        <button class="sub" :class="{ on: sub === '' }" @click="sub = ''">全部</button>
-        <button v-for="item in subs" :key="item" class="sub" :class="{ on: sub === item }" @click="sub = sub === item ? '' : item">
-          {{ item }}
-        </button>
+      <div class="bar-row">
+        <div class="search">
+          <BaseIcon name="search" :size="14" />
+          <input ref="searchInput" v-model="query" placeholder="搜中文 / 英文" spellcheck="false" />
+          <button v-if="query" class="mini" @click="query = ''"><BaseIcon name="x" :size="12" /></button>
+        </div>
+        <div v-if="subs.length" class="subs">
+          <button class="sub" :class="{ on: sub === '' }" @click="sub = ''">全部</button>
+          <button v-for="item in subs" :key="item" class="sub" :class="{ on: sub === item }" @click="sub = sub === item ? '' : item">
+            {{ item }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -194,6 +209,12 @@ function submit() {
   font-weight: 600;
 }
 
+.target em {
+  margin-left: 6px;
+  color: var(--warn);
+  font-style: normal;
+}
+
 .bar {
   padding: 9px 12px 10px;
   border-bottom: 1px solid var(--line);
@@ -207,18 +228,19 @@ function submit() {
   gap: 4px;
 }
 
+/* 分类只靠选中态上色，未选中的保持无框，屏幕上部就不再有 7 个描边方块 */
 .cat {
   height: var(--h-btn-sm);
   padding: 0 10px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--panel);
+  background: transparent;
   color: var(--ink-3);
   font-size: var(--fs-sm);
 }
 
 .cat:hover {
-  border-color: var(--line-2);
+  border-color: var(--line);
   color: var(--ink-2);
 }
 
@@ -237,6 +259,14 @@ function submit() {
   border-color: var(--star-line);
   background: var(--star-soft);
   color: var(--star-ink);
+}
+
+/* 搜索与子分类并排一行：子分类原来单独占第三行，搜索时还会整行消失 */
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
 }
 
 .fav {
@@ -267,8 +297,10 @@ function submit() {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 0 0 180px;
+  width: 180px;
   height: var(--h-input);
-  margin-top: 7px;
+  margin-top: 0;
   padding: 0 9px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -300,14 +332,24 @@ function submit() {
   padding: 0;
 }
 
+/* 宽度不够时横向滚，不换行：换行会让筛选区高度随分类变化跳动 */
 .subs {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
-  margin-top: 7px;
+  margin-top: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.subs::-webkit-scrollbar {
+  display: none;
 }
 
 .sub {
+  flex: none;
   height: var(--h-chip);
   padding: 0 10px;
   border: 1px solid transparent;
@@ -359,12 +401,15 @@ function submit() {
   font-size: var(--fs-sm);
 }
 
+/* 英文 tag 退成次要信息，但要让中文名先读到，所以限制宽度 + 省略 */
 .row .en {
-  flex: 1;
+  flex: 0 1 auto;
+  margin-right: auto;
   min-width: 0;
+  max-width: 62%;
   font-family: var(--mono);
-  font-size: var(--fs-caption);
-  color: var(--ink-4);
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -375,7 +420,7 @@ function submit() {
   padding: 0 5px;
   border-radius: 4px;
   background: var(--sunken-2);
-  color: var(--ink-4);
+  color: var(--ink-3);
   font-size: var(--fs-caption);
 }
 
@@ -424,7 +469,7 @@ function submit() {
 
 .hint {
   font-size: var(--fs-sm);
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 
 .foot {

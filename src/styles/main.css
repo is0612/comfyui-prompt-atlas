@@ -1,14 +1,18 @@
 :root {
-  --bg: #f2f1f8;
+  /* 三级表面：bg（页面底）< panel-rest（静息栏）< panel（焦点面板）。
+     底色从 #f2f1f8 去紫到中性灰，和强调色放在一起时不再整屏泛紫 */
+  --bg: #f4f4f7;
   --panel: #ffffff;
+  /* 左右两栏的静息表面：不用白色，白只留给需要看内容的面板 */
+  --panel-rest: #fbfbfd;
   /* 反复出现的极浅底（工具条 / 面板脚 / 词库区），原来散在 12 个组件里写 #fcfbff */
-  --surface: #fcfbff;
+  --surface: #fafafb;
   --on-accent: #ffffff;
-  --sunken: #f7f6fc;
-  --sunken-2: #f1eff9;
+  --sunken: #f5f5f8;
+  --sunken-2: #eeedf3;
   /* 扁平化之后描边是唯一的层次手段，比原来实一点 */
-  --line: #e3dfee;
-  --line-2: #cfc8e6;
+  --line: #e3e3ea;
+  --line-2: #c9c8d6;
   --ink: #221e35;
   --ink-2: #5b5674;
   /* 对比度修正：原 #918ca6 只有 3.23:1，承载英文 tag / 副标 / 元信息不达标。
@@ -58,6 +62,8 @@
   --hit-min: 24px;
   --radius: 12px;
   --radius-sm: 6px;
+  /* 卡片级圆角：10 / 11px 散在多个组件里，收敛成一个 token */
+  --radius-card: 10px;
   /* 只在弹窗 / 抽屉 / toast 上用；面板和卡片一律不用投影 */
   --shadow-sm: 0 1px 2px rgba(34, 30, 53, 0.04);
   --shadow-md: 0 8px 24px rgba(34, 30, 53, 0.1);
@@ -315,7 +321,7 @@ textarea {
 }
 
 /* 键盘焦点统一成 2px 品牌色外环 + 2px 间距：不占布局，且在页面底上
-   （#6355f0 对 #f2f1f8 = 4.58:1）清晰可见。
+   （#6355f0 对 #f4f4f7 = 4.68:1）清晰可见。
    组件里如果写了 outline: none，要改成只在 :focus-visible 之外生效 */
 :where(button, a, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);

@@ -23,9 +23,13 @@ import {
   toggleSlotTag,
   totalTagCount,
   ui,
+  view,
 } from '../store'
 
 const hot = ref<string | null>(null)
+
+/** 只有「当前在收标签的那一格」和「全部展开」两种情况才铺开芯片，其余折叠成一行 */
+const expanded = (en: string) => view.selectionExpandAll || activeSlot.value === en
 
 function conflictLabel(slot: string) {
   const parts = slotConflicts(slot).map((item) => `${item.group.label}×${item.tags.length}`)
@@ -35,6 +39,12 @@ function conflictLabel(slot: string) {
 
 function handsOf(slot: string) {
   return handUsage(slotTags(slot))
+}
+
+/** 空槽里的「+ 标签」：把焦点送到词库搜索框，省一次「先点输入框」 */
+function tuneLibrary(slot: string) {
+  setActiveSlot(slot)
+  ui.libraryFocus += 1
 }
 
 function onDrop(target: string, event: DragEvent) {
@@ -48,11 +58,16 @@ function onDrop(target: string, event: DragEvent) {
       moveSlotTag(payload.from, target, payload.en)
     }
     endDrag()
+    // 落点即焦点：折叠的盒子收到标签后自动展开，接着就能继续改它
+    setActiveSlot(target)
     return
   }
   const en = event.dataTransfer?.getData('text/plain')
   const tag = en ? allTags.value.find((t) => t.en === en) : undefined
-  if (tag && !hasSlotTag(target, tag.en)) toggleSlotTag(asSlotTag(tag), target)
+  if (tag && !hasSlotTag(target, tag.en)) {
+    toggleSlotTag(asSlotTag(tag), target)
+    setActiveSlot(target)
+  }
 }
 
 /** 移除角色会连它的标签一起删，有标签时问一句 */
@@ -97,24 +112,35 @@ function onDragOver(target: string, event: DragEvent) {
           权重
         </button>
         <button class="icon-btn" title="画风库" @click="ui.styleOpen = true"><BaseIcon name="palette" :size="15" /></button>
+        <button
+          v-if="selectedCharItems.length"
+          class="btn sm ghost"
+          :title="view.selectionExpandAll ? '每个角色只留一行' : '展开所有角色的标签'"
+          @click="view.selectionExpandAll = !view.selectionExpandAll"
+        >
+          {{ view.selectionExpandAll ? '收起' : '全部展开' }}
+        </button>
         <button v-if="selectedCharItems.length || globalTags.length" class="btn sm ghost" @click="clearAll">
           清空
         </button>
       </div>
     </div>
 
-    <div class="panel-body">
-      <div v-if="!selectedCharItems.length" class="empty">
-        <BaseIcon name="layers" :size="26" />
-        <div>还没选角色</div>
-        <div class="hint">左边点角色卡，先建一个角色框</div>
-      </div>
+    <div v-if="!selectedCharItems.length && !globalTags.length" class="empty-bar">
+      <span>还没选角色 · 左边点卡片，或按 / 搜索</span>
+      <button class="btn sm" @click="ui.pasteOpen = true"><BaseIcon name="clipboard" :size="12" /> 粘贴提示词</button>
+    </div>
 
+    <div v-else class="panel-body">
       <div
         v-for="char in selectedCharItems"
         :key="char.en"
         class="box"
-        :class="{ active: activeSlot === char.en, hot: hot === char.en }"
+        :class="{
+          active: activeSlot === char.en,
+          hot: hot === char.en,
+          collapsed: !expanded(char.en),
+        }"
         @click="setActiveSlot(char.en)"
         @dragover="onDragOver(char.en, $event)"
         @dragleave.self="hot = null"
@@ -123,6 +149,7 @@ function onDragOver(target: string, event: DragEvent) {
         <div class="box-head">
           <span class="name">{{ char.zh }}</span>
           <span v-if="activeSlot === char.en" class="badge">收标签</span>
+          <span v-if="!expanded(char.en)" class="count">{{ slotTags(char.en).length }} 标签</span>
           <span v-if="handsOf(char.en)" class="hands" title="手部动作占用">手 {{ handsOf(char.en) }}/2</span>
           <button
             v-if="conflictLabel(char.en)"
@@ -132,11 +159,12 @@ function onDragOver(target: string, event: DragEvent) {
           >
             ⚠ {{ conflictLabel(char.en) }}
           </button>
+          <span class="chev">{{ expanded(char.en) ? '▾' : '▸' }}</span>
           <button class="x" title="移除角色" @click.stop="removeChar(char.en, char.zh)"><BaseIcon name="x" :size="12" /></button>
         </div>
-        <div class="chips">
+        <div v-if="expanded(char.en)" class="chips">
           <TagChip v-for="tag in slotTags(char.en)" :key="tag.en" :slot-key="char.en" :tag="tag" />
-          <span v-if="!slotTags(char.en).length" class="hintdrop">拖标签进来</span>
+          <button v-if="!slotTags(char.en).length" class="hintdrop" @click.stop="tuneLibrary(char.en)">+ 标签</button>
         </div>
       </div>
 
@@ -164,7 +192,7 @@ function onDragOver(target: string, event: DragEvent) {
         </div>
         <div class="chips">
           <TagChip v-for="tag in globalTags" :key="tag.en" slot-key="" :tag="tag" />
-          <span v-if="!globalTags.length" class="hintdrop">场景、画风拖到这</span>
+          <button v-if="!globalTags.length" class="hintdrop" @click.stop="tuneLibrary('')">+ 场景 / 画风</button>
         </div>
       </div>
     </div>
@@ -197,10 +225,10 @@ function onDragOver(target: string, event: DragEvent) {
 
 .box,
 .gsec {
-  margin-bottom: 9px;
-  padding: 9px 10px 10px;
+  margin-bottom: 8px;
+  padding: 9px 10px 10px 8px;
   border: 1px solid var(--line);
-  border-radius: 11px;
+  border-radius: var(--radius-card);
   background: var(--panel);
   cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
@@ -211,10 +239,13 @@ function onDragOver(target: string, event: DragEvent) {
   border-color: var(--line-2);
 }
 
+/* 选中靠「左边一道 3px 品牌线」，不铺浅紫底：
+   5 个盒子全铺底的话拼装区会变成一片彩色，反而看不出谁在选中 */
 .box.active,
 .gsec.active {
   border-color: var(--accent-line);
-  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
 }
 
 .box.hot,
@@ -229,18 +260,20 @@ function onDragOver(target: string, event: DragEvent) {
   border-style: dashed;
 }
 
+/* 折叠态：只剩一行，盒头不留底部间距 */
+.collapsed {
+  padding: 8px 10px;
+}
+
+.collapsed .box-head {
+  margin-bottom: 0;
+}
+
 .box-head {
   display: flex;
   align-items: center;
   gap: 7px;
   margin-bottom: 6px;
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 99px;
-  flex: none;
 }
 
 .name {
@@ -255,6 +288,12 @@ function onDragOver(target: string, event: DragEvent) {
   color: var(--on-accent);
   font-size: var(--fs-caption);
   letter-spacing: 0.3px;
+}
+
+/* 折叠时替掉芯片的一行摘要 */
+.count {
+  color: var(--ink-3);
+  font-size: var(--fs-caption);
 }
 
 .conflict {
@@ -272,8 +311,15 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 .hands {
-  color: var(--ink-4);
+  color: var(--ink-3);
   font-family: var(--mono);
+  font-size: var(--fs-caption);
+}
+
+/* 折叠指示：纯装饰，可以留在 ink-4 */
+.chev {
+  flex: none;
+  color: var(--ink-4);
   font-size: var(--fs-caption);
 }
 
@@ -298,7 +344,7 @@ function onDragOver(target: string, event: DragEvent) {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
   min-height: var(--h-chip);
 }
 
@@ -306,14 +352,31 @@ function onDragOver(target: string, event: DragEvent) {
   display: inline-flex;
   align-items: center;
   height: var(--h-chip);
-  color: var(--ink-4);
-  font-size: var(--fs-caption);
+  padding: 0 10px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
 }
 
-.hint {
+.hintdrop:hover {
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+/* 空态收成一条引导条：原来那块居中空态占掉整个面板高度，什么也做不了 */
+.empty-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius-card);
+  color: var(--ink-3);
   font-size: var(--fs-sm);
-  color: var(--ink-4);
-  max-width: 200px;
 }
 
 /* 存历史是次要动作：右对齐小按钮，不要拉满整行抢主操作的权重 */
