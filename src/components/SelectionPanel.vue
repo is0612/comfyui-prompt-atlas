@@ -7,6 +7,7 @@ import { HAND_CAPACITY, handUsage } from '../data/conflicts'
 import {
   activeSlot,
   allTags,
+  charTags,
   clearSelection,
   clearSlot,
   fixSlotConflicts,
@@ -54,6 +55,22 @@ function onDrop(target: string, event: DragEvent) {
   if (tag && !hasSlotTag(target, tag.en)) toggleSlotTag(asSlotTag(tag), target)
 }
 
+/** 移除角色会连它的标签一起删，有标签时问一句 */
+function removeChar(en: string, name: string) {
+  const count = charTags.value[en]?.length ?? 0
+  if (count && !window.confirm(`移除「${name}」会同时清掉它的 ${count} 个标签，确定？`)) return
+  toggleChar(en)
+}
+
+/** 清空会连全局标签一起清，有内容时问一句 */
+function clearAll() {
+  const count = totalTagCount.value
+  if (!count && !selectedCharItems.value.length) return
+  const chars = selectedCharItems.value.length
+  if (!window.confirm(`会清掉 ${chars} 个角色框和 ${count} 个标签，确定？`)) return
+  clearSelection()
+}
+
 function onDragOver(target: string, event: DragEvent) {
   event.preventDefault()
   hot.value = target
@@ -80,7 +97,7 @@ function onDragOver(target: string, event: DragEvent) {
           权重
         </button>
         <button class="icon-btn" title="画风库" @click="ui.styleOpen = true"><BaseIcon name="palette" :size="15" /></button>
-        <button v-if="selectedCharItems.length || globalTags.length" class="btn sm ghost" @click="clearSelection">
+        <button v-if="selectedCharItems.length || globalTags.length" class="btn sm ghost" @click="clearAll">
           清空
         </button>
       </div>
@@ -115,7 +132,7 @@ function onDragOver(target: string, event: DragEvent) {
           >
             ⚠ {{ conflictLabel(char.en) }}
           </button>
-          <button class="x" title="移除角色" @click.stop="toggleChar(char.en)"><BaseIcon name="x" :size="12" /></button>
+          <button class="x" title="移除角色" @click.stop="removeChar(char.en, char.zh)"><BaseIcon name="x" :size="12" /></button>
         </div>
         <div class="chips">
           <TagChip v-for="tag in slotTags(char.en)" :key="tag.en" :slot-key="char.en" :tag="tag" />

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { SlotTag } from './types'
+import type { Category, SlotTag, TagItem } from './types'
 import {
   applyParsed,
   bumpWeight,
@@ -20,6 +20,7 @@ import {
   toasts,
   toggleChar,
   toggleSlotTag,
+  toggleLibraryTag,
   totalTagCount,
 } from './store'
 import { handCost, handUsage } from './data/conflicts'
@@ -305,6 +306,51 @@ describe('粘贴结果合并', () => {
   it('不认识的英文角色直接跳过', () => {
     applyParsed({ chars: [{ en: 'nobody', zh: '不存在', index: 0, tags: [t('smile')] }], globals: [], unknown: [], tokens: 1 })
     expect(selectedChars.value).toEqual([])
+  })
+})
+
+describe('词库点选：场景 / 风格强制归全局', () => {
+  const lib = (zh: string, en: string, cat: Category): TagItem => ({ zh, en, cat })
+
+  it('场景标签进全局区，即使在给角色收标签', () => {
+    toggleChar('hu_tao')
+    toggleLibraryTag(lib('教室', 'classroom', '场景'))
+    expect(ens('')).toEqual(['classroom'])
+    expect(ens('hu_tao')).toEqual([])
+  })
+
+  it('风格标签同样进全局', () => {
+    toggleChar('hu_tao')
+    toggleLibraryTag(lib('水彩', 'watercolor_(medium)', '风格'))
+    expect(ens('')).toEqual(['watercolor_(medium)'])
+    expect(ens('hu_tao')).toEqual([])
+  })
+
+  it('动作标签进当前收标签的角色槽', () => {
+    toggleChar('hu_tao')
+    toggleLibraryTag(lib('微笑', 'smile', '动作'))
+    expect(ens('hu_tao')).toEqual(['smile'])
+    expect(ens('')).toEqual([])
+  })
+
+  it('没有选角色时，动作标签也只是进全局', () => {
+    toggleLibraryTag(lib('微笑', 'smile', '动作'))
+    expect(ens('')).toEqual(['smile'])
+  })
+
+  it('再点一次从全局移除', () => {
+    toggleLibraryTag(lib('教室', 'classroom', '场景'))
+    toggleLibraryTag(lib('教室', 'classroom', '场景'))
+    expect(ens('')).toEqual([])
+  })
+
+  it('和粘贴拆解的归属保持一致', () => {
+    toggleChar('hu_tao')
+    // 拆解路径：场景进全局
+    applyParsed({ chars: [{ en: 'hu_tao', zh: '胡桃', index: 0, tags: [] }], globals: [t('classroom')], unknown: [], tokens: 1 })
+    // 点选路径：同一个标签也该进全局
+    toggleLibraryTag(lib('教室', 'classroom', '场景'))
+    expect(ens('hu_tao')).toEqual([])
   })
 })
 

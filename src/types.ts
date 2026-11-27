@@ -31,6 +31,17 @@ export interface Character {
 export const CATEGORIES = ['外形', '服装', '动作', '道具', '场景', '风格', '自定义'] as const
 export type Category = (typeof CATEGORIES)[number]
 
+/**
+ * 这几类标签描述的是整张画面，永远归全局区，不跟着某个角色走。
+ * ⚠️ 词库点选和粘贴拆解必须共用这一处判断 —— 两边各写一份的话，
+ * 同一个「教室」在两条路径下会挂到不同地方。
+ */
+export const GLOBAL_CATEGORIES = ['场景', '风格'] as const
+
+export function isGlobalCategory(cat: Category): boolean {
+  return (GLOBAL_CATEGORIES as readonly string[]).includes(cat)
+}
+
 export interface TagItem {
   zh: string
   en: string

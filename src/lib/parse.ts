@@ -1,3 +1,4 @@
+import { isGlobalCategory } from '../types'
 import type { Character, SlotTag, TagItem } from '../types'
 
 export interface ParsedChar {
@@ -160,11 +161,10 @@ export function parsePrompt(text: string, index: Index): ParseResult {
     current = char.en
     if (!chars.has(char.en)) chars.set(char.en, { en: char.en, zh: char.zh, tags: [], index: chars.size })
   }
-  /** 场景、画风是整张图的事，不管当前跟着谁，一律进全局 */
-  const GLOBAL_CATS = new Set(['场景', '风格'])
   const pushTag = (item: TagItem, weight?: number) => {
     const slot = toSlot(item, weight)
-    const bucket = !current || GLOBAL_CATS.has(item.cat) ? globals : chars.get(current)?.tags
+    // 场景、画风是整张图的事，不管当前跟着谁，一律进全局
+    const bucket = !current || isGlobalCategory(item.cat) ? globals : chars.get(current)?.tags
     if (!bucket) return
     if (bucket.some((t) => t.en === slot.en)) return
     bucket.push(slot)

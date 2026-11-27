@@ -5,6 +5,7 @@ import { SEED_TAGS } from './data/tags'
 import { DEFAULT_AI_BASE, DEFAULT_AI_MODEL, DEFAULT_AI_SYSTEM, LEGACY_AI_SYSTEMS } from './lib/ai'
 import { buildOutputs } from './lib/prompt'
 import type { ParseResult } from './lib/parse'
+import { isGlobalCategory } from './types'
 import type { Character, HistoryEntry, Settings, SlotTag, TagItem } from './types'
 
 const LS_KEY = 'prompt-atlas/v3'
@@ -97,7 +98,8 @@ export const ui = reactive({
   polishOpen: false,
   pasteOpen: false,
   styleOpen: false,
-  showNegative: true,
+  /** 默认不展开负向：多数时候只看正向，三块正负向一起铺开会把面板拖得很长 */
+  showNegative: false,
   /** 拼装区是否展示权重调节 */
   weightMode: false,
   editing: null as Character | null,
@@ -220,6 +222,15 @@ export function toggleSlotTag(tag: SlotTag, slot = activeSlot.value) {
   enforceExclusive(list, tag)
   enforceHands(list, tag)
   list.push({ zh: tag.zh, en: tag.en })
+}
+
+/**
+ * 词库点选（含「加到哪个槽」的判断）。
+ * 场景 / 风格这类标签一律进全局区，不管当前在给谁收标签 ——
+ * 与粘贴拆解共用 types.ts 里的 isGlobalCategory，两条路径行为必须一致。
+ */
+export function toggleLibraryTag(tag: TagItem) {
+  toggleSlotTag(tag, isGlobalCategory(tag.cat) ? '' : activeSlot.value)
 }
 
 export function removeSlotTag(slot: string, en: string) {

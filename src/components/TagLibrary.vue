@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import BaseIcon from './BaseIcon.vue'
-import { LIB_SLOT, asSlotTag, endDrag, startDrag } from '../lib/dnd'
+import { LIB_SLOT, endDrag, startDrag } from '../lib/dnd'
 import {
   activeSlot,
   addTag,
@@ -15,9 +15,9 @@ import {
   removeTag,
   settings,
   toggleFavorite,
-  toggleSlotTag,
+  toggleLibraryTag,
 } from '../store'
-import { CATEGORIES, type Category, type TagItem } from '../types'
+import { CATEGORIES, isGlobalCategory, type Category, type TagItem } from '../types'
 
 const active = ref<Category>('动作')
 const query = ref('')
@@ -26,7 +26,16 @@ const favOnly = ref(false)
 const adding = ref(false)
 const form = ref({ zh: '', en: '', sub: '' })
 
-const target = computed(() => (activeSlot.value ? charMap.value.get(activeSlot.value)?.zh ?? '角色' : '全局'))
+/** 头部那句「点一下加到 X」：场景 / 风格分类下永远是全局，先说明再点，别让人猜 */
+const target = computed(() => {
+  if (isGlobalCategory(active.value)) return '全局'
+  return activeSlot.value ? (charMap.value.get(activeSlot.value)?.zh ?? '角色') : '全局'
+})
+
+/** 这个标签实际会落到哪个槽 */
+function slotOf(tag: TagItem) {
+  return isGlobalCategory(tag.cat) ? '' : activeSlot.value
+}
 
 const pool = computed(() => allTags.value.filter((tag) => !(settings.hideNsfw && tag.nsfw)))
 
@@ -60,9 +69,13 @@ watch(active, () => {
 })
 
 function pick(tag: TagItem) {
-  const existed = hasSlotTag(activeSlot.value, tag.en)
-  toggleSlotTag(asSlotTag(tag))
-  if (existed) notify(`已从「${target.value}」移出`, 'warn')
+  const slot = slotOf(tag)
+  const existed = hasSlotTag(slot, tag.en)
+  toggleLibraryTag(tag)
+  if (existed) {
+    const where = slot ? (charMap.value.get(slot)?.zh ?? '角色') : '全局'
+    notify(`已从「${where}」移出`, 'warn')
+  }
 }
 
 function onDragStart(tag: TagItem, event: DragEvent) {
@@ -129,7 +142,7 @@ function submit() {
         v-for="tag in list"
         :key="tag.en"
         class="row"
-        :class="{ on: hasSlotTag(activeSlot, tag.en) }"
+        :class="{ on: hasSlotTag(slotOf(tag), tag.en) }"
         draggable="true"
         @dragstart="onDragStart(tag, $event)"
         @dragend="endDrag"
@@ -149,7 +162,7 @@ function submit() {
         >
           <BaseIcon name="star" :size="11" :filled="isFavorite(tag.en)" />
         </span>
-        <span class="tick"><BaseIcon :name="hasSlotTag(activeSlot, tag.en) ? 'check' : 'plus'" :size="12" /></span>
+        <span class="tick"><BaseIcon :name="hasSlotTag(slotOf(tag), tag.en) ? 'check' : 'plus'" :size="12" /></span>
       </button>
       <div v-if="!list.length" class="empty">
         <div>这里还没词条</div>
