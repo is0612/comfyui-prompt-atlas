@@ -12,6 +12,9 @@ const TARGETS = [
 ] as const satisfies readonly { key: Target; label: string; hint: string }[]
 
 const copied = ref('')
+/** 上次复制的是哪个目标：多数人固定用一个模型，不用每次都去三块里找 */
+const preferred = ref<Target>('wai')
+const preferredLabel = computed(() => TARGETS.find((t) => t.key === preferred.value)?.label ?? '')
 
 const densityLabel = computed(() => ({ lite: '精简', normal: '标准', rich: '复杂' })[settings.density])
 
@@ -23,6 +26,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
     notify('这段是空的，没东西可复制', 'warn')
     return
   }
+  preferred.value = key
   copied.value = `${key}-${part}`
   setTimeout(() => (copied.value = ''), 1400)
   notify(part === 'positive' ? '正向已复制' : '负向已复制')
@@ -37,9 +41,18 @@ async function copy(key: Target, part: 'positive' | 'negative') {
         <small>{{ densityLabel }}档</small>
       </div>
       <div class="head-actions">
-        <button class="btn sm primary" @click="ui.polishOpen = true"><BaseIcon name="sparkles" :size="12" /> AI 润色</button>
         <button class="btn sm ghost" @click="ui.showNegative = !ui.showNegative">
           {{ ui.showNegative ? '隐藏负向' : '显示负向' }}
+        </button>
+        <button class="btn sm" @click="ui.polishOpen = true"><BaseIcon name="sparkles" :size="12" /> 润色</button>
+        <button
+          class="btn sm primary"
+          :disabled="!hasContent"
+          :title="`复制 ${preferredLabel} 正向`"
+          @click="copy(preferred, 'positive')"
+        >
+          <BaseIcon :name="copied === `${preferred}-positive` ? 'check' : 'copy'" :size="12" />
+          复制正向
         </button>
       </div>
     </div>

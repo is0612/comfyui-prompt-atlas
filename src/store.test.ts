@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Category, SlotTag, TagItem } from './types'
 import {
   applyParsed,
+  canRedo,
+  canUndo,
   bumpWeight,
   charTags,
   clearSelection,
@@ -22,6 +24,9 @@ import {
   toggleSlotTag,
   toggleLibraryTag,
   totalTagCount,
+  redo,
+  resetAll,
+  undo,
 } from './store'
 import { handCost, handUsage } from './data/conflicts'
 
@@ -39,7 +44,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   vi.stubGlobal('window', { setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout })
 
-  clearSelection()
+  resetAll()
   settings.autoReplace = true
   settings.outfitReplace = true
   settings.handBudget = true
@@ -306,6 +311,85 @@ describe('粘贴结果合并', () => {
   it('不认识的英文角色直接跳过', () => {
     applyParsed({ chars: [{ en: 'nobody', zh: '不存在', index: 0, tags: [t('smile')] }], globals: [], unknown: [], tokens: 1 })
     expect(selectedChars.value).toEqual([])
+  })
+})
+
+describe('撤销 / 重做', () => {
+  it('撤销一步能还原刚加的标签', () => {
+    add('A', 'blue_hair')
+    expect(ens('A')).toEqual(['blue_hair'])
+    undo()
+    expect(ens('A')).toEqual([])
+  })
+
+  it('撤销能还原被删掉的标签', () => {
+    add('A', 'blue_hair')
+    removeSlotTag('A', 'blue_hair')
+    expect(ens('A')).toEqual([])
+    undo()
+    expect(ens('A')).toEqual(['blue_hair'])
+  })
+
+  it('连续操作可以逐级撤销', () => {
+    add('A', 'blue_hair')
+    add('A', 'long_hair')
+    add('A', 'smile')
+    undo()
+    expect(ens('A')).toEqual(['blue_hair', 'long_hair'])
+    undo()
+    expect(ens('A')).toEqual(['blue_hair'])
+    undo()
+    expect(ens('A')).toEqual([])
+  })
+
+  it('重做把撤销掉的操作还回来', () => {
+    add('A', 'blue_hair')
+    undo()
+    expect(ens('A')).toEqual([])
+    redo()
+    expect(ens('A')).toEqual(['blue_hair'])
+  })
+
+  it('撤销再做一个新操作，重做栈被清空', () => {
+    add('A', 'blue_hair')
+    undo()
+    expect(canRedo.value).toBe(true)
+    add('A', 'smile')
+    expect(canRedo.value).toBe(false)
+  })
+
+  it('撤销能还原清空选择', () => {
+    toggleChar('hu_tao')
+    add('hu_tao', 'smile')
+    clearSelection()
+    expect(selectedChars.value).toEqual([])
+    undo()
+    expect(selectedChars.value).toEqual(['hu_tao'])
+    expect(ens('hu_tao')).toEqual(['smile'])
+  })
+
+  it('撤销能还原被移除的角色', () => {
+    toggleChar('hu_tao')
+    toggleChar('hu_tao')
+    expect(selectedChars.value).toEqual([])
+    undo()
+    expect(selectedChars.value).toEqual(['hu_tao'])
+  })
+
+  it('没有可撤销的操作时提示而不是报错', () => {
+    expect(canUndo.value).toBe(false)
+    expect(() => undo()).not.toThrow()
+    expect(toasts.value.some((x) => x.tone === 'warn')).toBe(true)
+  })
+
+  it('撤销深度有上限，不会无限堆积', () => {
+    for (let i = 0; i < 60; i++) add('A', `t${i}`)
+    let count = 0
+    while (canUndo.value && count < 100) {
+      undo()
+      count++
+    }
+    expect(count).toBeLessThanOrEqual(40)
   })
 })
 

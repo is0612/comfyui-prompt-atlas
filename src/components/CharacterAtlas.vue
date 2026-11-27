@@ -1,11 +1,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import BaseIcon from './BaseIcon.vue'
-import { allCharacters, games, selectedChars, toggleChar, ui } from '../store'
+import {
+  allCharacters,
+  charFavorites,
+  games,
+  isCharFavorite,
+  selectedChars,
+  toggleChar,
+  toggleCharFavorite,
+  ui,
+} from '../store'
 import type { Character } from '../types'
 
 const game = ref('')
 const query = ref('')
+/** 只看收藏的角色 */
+const favOnly = ref(false)
 
 /** public/ 下静态资源的根路径，部署到子目录时也能对上 */
 const BASE = import.meta.env.BASE_URL
@@ -25,6 +36,7 @@ const pool = computed(() => allCharacters.value.filter((char) => !game.value || 
 const visible = computed(() => {
   const q = query.value.trim().toLowerCase()
   return pool.value.filter((char) => {
+    if (favOnly.value && !isCharFavorite(char.en)) return false
     if (!q) return true
     return [char.zh, char.en, char.body, char.hair, char.eyes, char.outfit, char.traits, char.game]
       .filter(Boolean)
@@ -64,6 +76,14 @@ function openEditor(char: Character | null) {
           @click="game = tab.name"
         >
           {{ tab.name }}<span>{{ tab.count }}</span>
+        </button>
+        <button
+          class="game star"
+          :class="{ on: favOnly }"
+          :title="`只看收藏（${charFavorites.length} 个）`"
+          @click="favOnly = !favOnly"
+        >
+          <BaseIcon name="star" :size="12" :filled="favOnly" /><span>{{ charFavorites.length }}</span>
         </button>
       </div>
 
@@ -106,6 +126,14 @@ function openEditor(char: Character | null) {
               <BaseIcon name="pencil" :size="12" />
             </button>
             <span v-if="isOn(char.en)" class="check"><BaseIcon name="check" :size="12" /></span>
+            <button
+              class="fav"
+              :class="{ on: isCharFavorite(char.en) }"
+              :title="isCharFavorite(char.en) ? '取消收藏' : '收藏，可以从页签只看收藏'"
+              @click.stop="toggleCharFavorite(char.en)"
+            >
+              <BaseIcon name="star" :size="11" :filled="isCharFavorite(char.en)" />
+            </button>
           </div>
           <h3 :title="`${char.zh} · ${char.en}`">{{ char.zh }}</h3>
         </article>
@@ -280,6 +308,33 @@ function openEditor(char: Character | null) {
 
 .card.on h3 {
   font-weight: 600;
+}
+
+/* 收藏星标：默认藏起来，收藏过的常驻（否则看不出哪些被收了） */
+.card .fav {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s;
+}
+
+.card:hover .fav,
+.card .fav.on {
+  opacity: 1;
+}
+
+.card .fav:hover,
+.card .fav.on {
+  color: var(--warn);
 }
 
 /* 图区：正方，圆角裁切，图本身就是 160×160，几乎 1:1 显示 */

@@ -36,6 +36,7 @@ interface Snapshot {
   charTags: Record<string, SlotTag[]>
   history: HistoryEntry[]
   favorites: string[]
+  charFavorites: string[]
 }
 
 function readSnapshot(): Partial<Snapshot> {
@@ -88,6 +89,8 @@ export const activeSlot = ref('')
 export const history = ref<HistoryEntry[]>(saved.history ?? [])
 /** 收藏的词条 en，词库里排在最前 */
 export const favorites = ref<string[]>(saved.favorites ?? [])
+/** 收藏的角色 en：168 个角色里反复用的就那几个，给个置顶入口 */
+export const charFavorites = ref<string[]>(saved.charFavorites ?? [])
 
 export const ui = reactive({
   settingsOpen: false,
@@ -201,6 +204,8 @@ export function setTagWeight(slot: string, en: string, weight: number) {
   const tag = slotTags(slot).find((t) => t.en === en)
   if (!tag) return
   const clamped = Math.min(2, Math.max(0.5, Math.round(weight * 10) / 10))
+  if (clamped === (tag.w ?? 1)) return
+  pushEdit()
   if (clamped === 1) delete tag.w
   else tag.w = clamped
 }
@@ -212,6 +217,7 @@ export function bumpWeight(slot: string, en: string, delta: number) {
 }
 
 export function toggleSlotTag(tag: SlotTag, slot = activeSlot.value) {
+  pushEdit()
   if (slot && !charTags.value[slot]) charTags.value[slot] = []
   const list = slotTags(slot)
   const index = list.findIndex((t) => t.en === tag.en)
@@ -236,7 +242,9 @@ export function toggleLibraryTag(tag: TagItem) {
 export function removeSlotTag(slot: string, en: string) {
   const list = slotTags(slot)
   const index = list.findIndex((t) => t.en === en)
-  if (index >= 0) list.splice(index, 1)
+  if (index < 0) return
+  pushEdit()
+  list.splice(index, 1)
 }
 
 /** 二次编辑：就地改中文名 / 英文标签，空值表示这一项不改 */
@@ -247,6 +255,7 @@ export function renameSlotTag(slot: string, en: string, patch: { zh: string; en:
   const nextZh = patch.zh.trim() || tag.zh
   const nextEn = patch.en.trim() || tag.en
   if (nextZh === tag.zh && nextEn === tag.en) return
+  pushEdit()
   tag.zh = nextZh
   tag.en = nextEn
   // 改成已存在的同一个标签时，去掉旧的那条
@@ -265,6 +274,7 @@ export function moveSlotTag(from: string, to: string, en: string) {
   // 目标已经有同一个标签就直接不动。检查必须在 splice 之前 ——
   // 否则源槽的标签已经被删掉，目标又不收，这个标签就凭空消失了
   if (target.some((t) => t.en === en)) return
+  pushEdit()
   const [tag] = source.splice(index, 1)
   if (!tag) return
   enforceExclusive(target, tag)
@@ -275,6 +285,80 @@ export function moveSlotTag(from: string, to: string, en: string) {
 /** 当前槽里同一维度重复的标签 */
 export function slotConflicts(slot: string): Clash[] {
   return conflictsIn(slotTags(slot))
+}
+
+/* ── 撤销 / 重做 ──────────────────────────────────── */
+/**
+ * 只记录「拼装区」的状态：选了谁、每个槽有什么标签、全局有什么标签。
+ * 词库、角色数据、设置不进栈 —— 那些改错了有各自的入口，塞进来只会让
+ * 撤销变得不可预测（按一次 Ctrl+Z 结果把三分钟前改的角色名还原了）。
+ * 栈不持久化：刷新后从零开始，符合直觉。
+ */
+interface EditSnapshot {
+  selectedChars: string[]
+  globalTags: SlotTag[]
+  charTags: Record<string, SlotTag[]>
+  activeSlot: string
+}
+
+const UNDO_LIMIT = 40
+const undoStack = ref<EditSnapshot[]>([])
+const redoStack = ref<EditSnapshot[]>([])
+
+function cloneTags(list: SlotTag[]): SlotTag[] {
+  return list.map((tag) => ({ ...tag }))
+}
+
+function captureEdit(): EditSnapshot {
+  const slots: Record<string, SlotTag[]> = {}
+  for (const [key, list] of Object.entries(charTags.value)) slots[key] = cloneTags(list)
+  return {
+    selectedChars: [...selectedChars.value],
+    globalTags: cloneTags(globalTags.value),
+    charTags: slots,
+    activeSlot: activeSlot.value,
+  }
+}
+
+function restoreEdit(snapshot: EditSnapshot) {
+  selectedChars.value = [...snapshot.selectedChars]
+  globalTags.value = cloneTags(snapshot.globalTags)
+  const slots: Record<string, SlotTag[]> = {}
+  for (const [key, list] of Object.entries(snapshot.charTags)) slots[key] = cloneTags(list)
+  charTags.value = slots
+  activeSlot.value = snapshot.activeSlot
+}
+
+/** 改动拼装区之前调一次，把当前状态压进撤销栈 */
+function pushEdit() {
+  undoStack.value.push(captureEdit())
+  if (undoStack.value.length > UNDO_LIMIT) undoStack.value.shift()
+  redoStack.value = []
+}
+
+export const canUndo = computed(() => undoStack.value.length > 0)
+export const canRedo = computed(() => redoStack.value.length > 0)
+
+export function undo() {
+  const previous = undoStack.value.pop()
+  if (!previous) {
+    notify('没有可以撤销的操作', 'warn')
+    return
+  }
+  redoStack.value.push(captureEdit())
+  restoreEdit(previous)
+  notify('已撤销')
+}
+
+export function redo() {
+  const next = redoStack.value.pop()
+  if (!next) {
+    notify('没有可以重做的操作', 'warn')
+    return
+  }
+  undoStack.value.push(captureEdit())
+  restoreEdit(next)
+  notify('已重做')
 }
 
 /* ── 收藏 ─────────────────────────────────────────── */
@@ -292,9 +376,24 @@ export function toggleFavorite(en: string) {
   return true
 }
 
+export function isCharFavorite(en: string) {
+  return charFavorites.value.includes(en)
+}
+
+export function toggleCharFavorite(en: string) {
+  const index = charFavorites.value.indexOf(en)
+  if (index >= 0) {
+    charFavorites.value.splice(index, 1)
+    return false
+  }
+  charFavorites.value.push(en)
+  return true
+}
+
 /* ── 粘贴拆解 ─────────────────────────────────────── */
 /** 把解析结果并进拼装区：已有的标签保留，只补新的 */
 export function applyParsed(result: ParseResult) {
+  pushEdit()
   let addedTags = 0
   let addedChars = 0
   for (const parsed of result.chars) {
@@ -358,6 +457,7 @@ function trimHands(list: SlotTag[]): SlotTag[] {
 
 /** 冲突修正：每组只留最后加进去的那个 */
 export function fixSlotConflicts(slot: string) {
+  pushEdit()
   const cleaned = trimHands(keepLastOfEachGroup(slotTags(slot)))
   if (slot) charTags.value[slot] = cleaned
   else globalTags.value = cleaned
@@ -365,6 +465,8 @@ export function fixSlotConflicts(slot: string) {
 }
 
 export function clearSlot(slot: string) {
+  if (!slotTags(slot).length) return
+  pushEdit()
   if (slot) charTags.value[slot] = []
   else globalTags.value = []
 }
@@ -375,6 +477,7 @@ export function setActiveSlot(slot: string) {
 
 /* ── 选择 ─────────────────────────────────────────── */
 export function toggleChar(en: string) {
+  pushEdit()
   const index = selectedChars.value.indexOf(en)
   if (index >= 0) {
     selectedChars.value.splice(index, 1)
@@ -388,6 +491,8 @@ export function toggleChar(en: string) {
 }
 
 export function clearSelection() {
+  if (!selectedChars.value.length && !globalTags.value.length) return
+  pushEdit()
   selectedChars.value = []
   charTags.value = {}
   globalTags.value = []
@@ -511,8 +616,13 @@ export function resetAll() {
   selectedChars.value = []
   charTags.value = {}
   globalTags.value = []
+  // 不清这个的话，重置之后加标签会往一个已经不存在的角色槽里塞，输出里根本看不到
+  activeSlot.value = ''
   history.value = []
   favorites.value = []
+  charFavorites.value = []
+  undoStack.value = []
+  redoStack.value = []
   notify('本地数据已清空')
 }
 
@@ -533,6 +643,7 @@ function persist() {
       charTags: charTags.value,
       history: history.value,
       favorites: favorites.value,
+      charFavorites: charFavorites.value,
     }
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(snapshot))
@@ -546,7 +657,7 @@ function persist() {
 }
 
 watch(
-  [settings, overrides, hidden, customTags, selectedChars, globalTags, charTags, history, favorites],
+  [settings, overrides, hidden, customTags, selectedChars, globalTags, charTags, history, favorites, charFavorites],
   persist,
   { deep: true },
 )

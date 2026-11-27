@@ -165,9 +165,15 @@ textarea {
   transition: background 0.15s, color 0.15s;
 }
 
-.icon-btn:hover {
+.icon-btn:hover:not(:disabled) {
   background: var(--sunken-2);
   color: var(--ink);
+}
+
+/* 撤销 / 重做这类按钮「暂时没得按」时要看得出来，不是灰一点就行 */
+.icon-btn:disabled {
+  opacity: 0.32;
+  cursor: default;
 }
 
 .seg {

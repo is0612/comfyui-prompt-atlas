@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BaseIcon from './BaseIcon.vue'
-import { allCharacters, games, settings, ui } from '../store'
+import { allCharacters, canRedo, canUndo, games, redo, settings, ui, undo } from '../store'
 import type { Density } from '../types'
 
 const DENSITIES: { key: Density; label: string }[] = [
@@ -35,8 +35,11 @@ const DENSITIES: { key: Density; label: string }[] = [
           {{ item.label }}
         </button>
       </div>
-      <button class="btn sm" :class="{ on: ui.showNegative }" @click="ui.showNegative = !ui.showNegative">
-        负向
+      <button class="icon-btn" :disabled="!canUndo" title="撤销（Ctrl+Z）" @click="undo()">
+        <BaseIcon name="undo" />
+      </button>
+      <button class="icon-btn" :disabled="!canRedo" title="重做（Ctrl+Shift+Z）" @click="redo()">
+        <BaseIcon name="redo" />
       </button>
       <button class="icon-btn" title="历史记录" @click="ui.historyOpen = true"><BaseIcon name="clock" /></button>
       <button class="icon-btn" title="设置" @click="ui.settingsOpen = true"><BaseIcon name="sliders" /></button>

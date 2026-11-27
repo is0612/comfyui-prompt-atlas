@@ -17,6 +17,8 @@ export const ICONS = {
   grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
   clipboard: 'M9 4H7v3h10V4h-2M9 4a3 3 0 0 1 6 0v0a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1ZM7 7H5v14h14V7h-2',
   palette: 'M4 13a8 8 0 1 1 8 8h-2a2 2 0 0 1 0-4 2 2 0 0 0 0-4H4Z',
+  undo: 'M4 10h9a5 5 0 0 1 0 10h-2M4 10l4-4M4 10l4 4',
+  redo: 'M20 10h-9a5 5 0 0 0 0 10h2M20 10l-4-4M20 10l-4 4',
   star: 'M12 3.6l2.5 5.4 5.9.8-4.3 4.1 1.1 5.9-5.2-2.9-5.2 2.9 1.1-5.9-4.3-4.1 5.9-.8z',
 } as const
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted } from 'vue'
+import { redo, ui, undo } from './store'
 import AppHeader from './components/AppHeader.vue'
 import CharacterAtlas from './components/CharacterAtlas.vue'
 import CharacterEditor from './components/CharacterEditor.vue'
@@ -13,6 +15,57 @@ import SettingsDrawer from './components/SettingsDrawer.vue'
 import StyleLibrary from './components/StyleLibrary.vue'
 import TagLibrary from './components/TagLibrary.vue'
 import ToastHost from './components/ToastHost.vue'
+
+/** 在输入框里按快捷键应该走浏览器默认行为（撤销文字、退格等），别抢 */
+function isTyping(target: EventTarget | null) {
+  const el = target as HTMLElement | null
+  if (!el) return false
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
+}
+
+/** 按层级从高到低关最上面那一层 */
+const LAYERS = ['settingsOpen', 'guideOpen', 'polishOpen', 'styleOpen', 'editorOpen', 'importOpen', 'pasteOpen', 'historyOpen'] as const
+
+function closeTopLayer() {
+  for (const key of LAYERS) {
+    if (ui[key]) {
+      ui[key] = false
+      return
+    }
+  }
+}
+
+function onKeydown(event: KeyboardEvent) {
+  const mod = event.ctrlKey || event.metaKey
+
+  if (mod && event.key.toLowerCase() === 'z') {
+    if (isTyping(event.target)) return
+    event.preventDefault()
+    if (event.shiftKey) redo()
+    else undo()
+    return
+  }
+
+  // 输入框里的 Esc 归控件自己（比如标签就地改名），不要顺手把弹窗关了
+  if (event.key === 'Escape') {
+    if (isTyping(event.target)) return
+    closeTopLayer()
+    return
+  }
+
+  // 斜杠聚焦角色搜索，和大多数工具的习惯一致
+  if (event.key === '/' && !isTyping(event.target)) {
+    const input = document.querySelector<HTMLInputElement>('.atlas input:not([type])')
+    if (input) {
+      event.preventDefault()
+      input.focus()
+      input.select()
+    }
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
