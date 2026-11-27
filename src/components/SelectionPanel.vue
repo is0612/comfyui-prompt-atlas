@@ -276,9 +276,9 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 /* 选中只换描边颜色，宽度和 padding 一个像素都不动。
-   空全局槽（bare）排除在外：activeSlot 默认就是 ''，否则一进页面那行就自带一圈品牌色描边 */
+   全局槽也要有这一档：activeSlot 默认就是 ''，不覆盖的话最常落标签的那一格反而最不显眼 */
 .box.active,
-.gsec.active:not(.bare) {
+.gsec.active {
   border-color: var(--accent-line);
 }
 
@@ -289,7 +289,8 @@ function onDragOver(target: string, event: DragEvent) {
   ⚠️ .box 绝不能加 overflow: hidden，会把 -1px 裁掉一半。
   上下各留 8px 是为了不碰圆角（圆角会把 3px 宽的元素钳成 1.5px）。
 */
-.box.active::before {
+.box.active::before,
+.gsec.active::before {
   content: '';
   position: absolute;
   left: -1px;
@@ -313,6 +314,8 @@ function onDragOver(target: string, event: DragEvent) {
   align-items: center;
   gap: 7px;
   margin-bottom: 6px;
+  /* flex 链上补 min-width: 0，名字才有可能被压缩出省略号 */
+  min-width: 0;
 }
 
 /* 折叠行的盒头撑满 34px，垂直居中 */
@@ -321,13 +324,19 @@ function onDragOver(target: string, event: DragEvent) {
   margin-bottom: 0;
 }
 
+/* 名字是唯一没做省略号的正文元素：自定义角色可以有很长的名字 */
 .name {
+  min-width: 0;
+  overflow: hidden;
   font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.box.active .name {
+.box.active .name,
+.gsec.active .name {
   font-weight: 600;
   color: var(--ink);
 }
@@ -421,7 +430,8 @@ function onDragOver(target: string, event: DragEvent) {
   color: var(--accent-ink);
 }
 
-/* 空态收成一条引导条：原来那块居中空态占掉整个面板高度，什么也做不了 */
+/* 空态收成一条引导条：原来那块居中空态占掉整个面板高度，什么也做不了。
+   虚线只留给 drop chip 和 dragover，容器级描边一律实线 */
 .empty-bar {
   display: flex;
   align-items: center;
@@ -430,7 +440,7 @@ function onDragOver(target: string, event: DragEvent) {
   min-height: 64px;
   margin: 12px;
   padding: 10px 12px;
-  border: 1px dashed var(--line-2);
+  border: 1px solid var(--line);
   border-radius: var(--radius-card);
   color: var(--ink-3);
   font-size: var(--fs-sm);

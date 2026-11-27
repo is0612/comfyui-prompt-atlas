@@ -160,8 +160,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     max-height: none;
   }
 
+  /* 单列时页面自己会滚，拼装区不该再定高内滚（定 300 会在 3 个角色时留 110px 空白） */
   .middle > :first-child {
-    height: 300px;
+    height: auto;
   }
 
   .middle > :last-child {

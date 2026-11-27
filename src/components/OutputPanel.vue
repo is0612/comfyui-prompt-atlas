@@ -41,15 +41,6 @@ async function copy(key: Target, part: 'positive' | 'negative') {
     <div class="panel-head">
       <div class="panel-title">提示词输出</div>
       <div class="head-actions">
-        <button
-          class="btn sm ghost neg-btn"
-          :aria-pressed="view.showNegative"
-          :title="view.showNegative ? '隐藏负向' : '显示负向'"
-          @click="view.showNegative = !view.showNegative"
-        >
-          <span class="txt-long">{{ view.showNegative ? '隐藏负向' : '显示负向' }}</span>
-          <span class="txt-short">负向</span>
-        </button>
         <button class="icon-btn" title="AI 润色" @click="ui.polishOpen = true">
           <BaseIcon name="sparkles" :size="15" />
         </button>
@@ -95,7 +86,12 @@ async function copy(key: Target, part: 'positive' | 'negative') {
         <div class="hint-line">{{ currentHint }}</div>
         <pre class="text">{{ outputs[current].positive || '—' }}</pre>
         <template v-if="outputs[current].negative">
-          <button class="neg-toggle" :aria-expanded="view.showNegative" @click="view.showNegative = !view.showNegative">
+          <button
+            class="neg-toggle"
+            :class="{ on: view.showNegative }"
+            :aria-expanded="view.showNegative"
+            @click="view.showNegative = !view.showNegative"
+          >
             负向 <span>{{ view.showNegative ? '▾' : '▸' }}</span>
           </button>
           <pre v-if="view.showNegative" class="text neg">{{ outputs[current].negative }}</pre>
@@ -129,7 +125,8 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   row-gap: 6px;
 }
 
-/* 窄栏降级：负向按钮只留「负向」，主按钮去掉「正向」二字。两条都靠 title 保留完整含义 */
+/* 窄栏降级：主按钮去掉「正向」二字（title 保留完整含义）。
+   单列（≤1120）右栏变成整屏宽，长文案放得下，所以再显回来 */
 .txt-short {
   display: none;
 }
@@ -141,6 +138,16 @@ async function copy(key: Target, part: 'positive' | 'negative') {
 
   .txt-short {
     display: inline;
+  }
+}
+
+@media (max-width: 1120px) {
+  .txt-long {
+    display: inline;
+  }
+
+  .txt-short {
+    display: none;
   }
 }
 
@@ -217,6 +224,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   color: var(--ink-3);
 }
 
+/* 负向的唯一入口：贴着负向内容，并且展开/收起有明显状态差别（窄屏也一样） */
 .neg-toggle {
   display: inline-flex;
   align-items: center;
@@ -227,6 +235,10 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   background: transparent;
   color: var(--ink-3);
   font-size: var(--fs-caption);
+}
+
+.neg-toggle.on {
+  color: var(--ink);
 }
 
 .hint {
