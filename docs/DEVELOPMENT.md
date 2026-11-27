@@ -16,11 +16,14 @@
 ```bash
 npm install
 npm run dev      # http://localhost:5273
+npm test         # 129 条单测，约 2 秒
 npm run build    # vue-tsc --noEmit 做类型检查，再打包到 dist/
 npm run preview  # 本地预览 dist/
 ```
 
-没有测试、没有 lint 命令（见 §11）。类型检查是 `build` 的一部分，`strict` + `noUnusedLocals` + `noUnusedParameters` 全开，所以**删了东西没清干净 import 会直接构建失败**，这是件好事。
+`npm run data:check` 可以确认批量角色数据与生成脚本是否一致（见 §8）。
+
+类型检查是 `build` 的一部分，`strict` + `noUnusedLocals` + `noUnusedParameters` 全开，所以**删了东西没清干净 import 会直接构建失败**，这是件好事。测试文件也在 `src/` 下，同样受这套检查约束。仍是零 lint（见 §11）。
 
 ## 3. 目录结构
 
@@ -47,7 +50,11 @@ src/
 │  └─ icons.ts            内联 SVG path
 ├─ components/          见 §9
 public/avatars/         170 张 160×160 webp 头像，文件名 = Character.avatar
+tools/
+└─ build_characters.py  批量角色与头像的生成脚本（见 §8），数据文件的唯一来源
 ```
+
+单元测试与被测文件同目录：`lib/*.test.ts`、`data/conflicts.test.ts`、`store.test.ts`，共 129 条。
 
 `vite.config.ts` 和 `tsconfig.json` 里配了 `@` → `src` 的别名，但代码里全用的是相对路径。两种都行，挑一种坚持。
 
@@ -150,20 +157,31 @@ public/avatars/         170 张 160×160 webp 头像，文件名 = Character.ava
 | 数据 | 来源 | 重新生成 |
 |---|---|---|
 | 32 个精修角色 | 手写 | 直接改 `characters.ts` |
-| 136 个批量角色 | 本机 `ComfyUI-aki-v3.2/ComfyUI/custom_nodes/Comfyui-Anima-Wardrobe-V6/presets/anima_v4_characters.json` | **生成脚本目前没有入库**，规则见下 |
-| 170 张头像 | 同上插件的 `thumbs/`（README 注明是作者用 Anima 出图裁切的 160×160） | 按文件名拷进 `public/avatars/` |
+| 136 个批量角色 | 本机 `ComfyUI-aki-v3.2/ComfyUI/custom_nodes/Comfyui-Anima-Wardrobe-V6/presets/anima_v4_characters.json` | `npm run data:characters` |
+| 170 张头像 | 插件 `thumbs/`（README 注明是作者用 Anima 出图裁切的 160×160） | 同上命令会补齐缺失的 |
 | 218 条通用标签 | 手写 | 直接改 `tags.ts` |
 | 40 条画风 | 手写 | 直接改 `styles.ts` |
 
-批量角色的生成规则（照这个可以重写脚本）：
+`tools/build_characters.py` 是 `characters-extra.ts` 的唯一来源，**不要手改那个文件**。改数据有两种办法：
+
+- 改脚本里的常量（中文名、形态后缀、要排除的条目），然后重跑
+- 在界面上右键卡片编辑，会存成 override，脚本重跑也覆盖不掉
+
+重跑前先 `npm run data:check` 对比一下，它只报告不写文件。脚本找不到数据源时会直接退出，不会写半成品。
+
+数据源不在本仓库里（是别人机器上的本地插件），默认路径写在脚本顶部，也可以用 `--presets` / `--thumbs` 指定。
+
+批量角色的生成规则：
 
 1. 只取 `work` 属于原神 / 星穹铁道 / 绝区零、且有中文名的条目
 2. 跳过与精修版「归一化后同名」的条目。归一化 = 去掉 `_(...)` → 冒号、空格转下划线 → 剥掉末尾的作品 id
-3. 过滤标签：去掉 `1girl` / `solo` 这类；**体型词只留第一个**（原始数据常同时有 `medium breasts` 和 `large breasts`）；过滤硬色情词，`cleavage`、`thighs` 这类外观词保留。注意原始标签是空格分隔，比对前要先转下划线
+3. 过滤标签：去掉 `1girl` / `solo` 这类；**体型词只留第一个**（原始数据常同时有 `medium breasts` 和 `large breasts`）；过滤硬色情词，`cleavage`、`thighs` 这类外观词保留。⚠️ 原始标签是空格分隔，比对前必须先转下划线，否则黑名单永远不命中 —— 这个坑踩过两次
 4. 发色、瞳色是英文色词，按一张小映射表转成「蓝紫发」「金瞳」
 5. 元素、武器、体型、服装、特征**没有可靠来源，一律留空**，不编
 6. 中文名按米哈游官网核对过一遍：原始数据里大量是称号（`sucrose` 写成「无害甜度」）、全名（`fischl` 写成「菲谢尔·冯·露弗施洛斯·那菲多特」）或梗名（`trailblazer` 写成「银河球棒侠」）
 7. 同一角色的多套官方服饰在库里是独立条目，中文名撞车的补后缀（「刻晴·华服」）。**补后缀要先登记本体**（按 tag 里括号个数升序处理），否则会把本体也加上后缀
+
+改完脚本记得跑 `npm run data:check` 确认输出与现有文件一致，再 `npm run build && npm test`。
 
 ## 9. 组件清单
 
@@ -192,7 +210,7 @@ public/avatars/         170 张 160×160 webp 头像，文件名 = Character.ava
 - **状态只在 `store.ts` 里改**。`lib/` 下全是纯函数，组件只读 store、调 store 的函数
 - **注释解释「为什么」，不解释「是什么」**。这个项目里大量注释记录的是踩过的坑（flex 塌陷、`grid-auto-rows` 压扁、`evaluateOnNewDocument` 不带作用域……），删代码前先读注释
 - **样式**：颜色、圆角、阴影一律用 `main.css` 里的 CSS 变量；新弹窗的遮罩要自己写 `position: fixed; inset: 0`（全局 `.mask` 现在只有背景色）
-- **加 `Character` 字段要改四个地方**：`types.ts`、`importer.ts` 的 `ALIASES` + `FIELDS`、`CSV_TEMPLATE`、`CharacterEditor` 的表单。漏掉导入器会导致导出再导入时丢字段
+- **加 `Character` 字段**：`types.ts` 是源头，之后要登记 `importer.ts` 的 `ALIASES`（导入时认的字段名）、`FIELDS`、`CSV_TEMPLATE`、`CharacterEditor` 的空表单。忘了登记的话 `npm run build` 会直接报错（`FIELDS_COVER_ALL` 会变成 `false`，空表单和测试样板也会缺键），不用靠人记 —— 这条保险是 avatar 丢过一次之后补的
 - **隐私**：示例、测试、注释里的编号一律用 `123456789` 这类占位，不写真实号码
 - UI 偏好扁平色块，不要边框堆叠和重阴影
 
@@ -200,25 +218,25 @@ public/avatars/         170 张 160×160 webp 头像，文件名 = Character.ava
 
 按「会不会造成损失」排序。性能**不在**清单里 —— 实测冷启动首屏约 540ms、168 张卡片 1,625 个 DOM 节点、交互 7ms，没有做虚拟滚动或拆包的必要。
 
-### P0 · 会造成损失
+### 已修复（2026-11-27）
 
-**仓库从未提交过。** `git status` 显示全部文件都是未跟踪状态，`main` 分支零 commit。约 6,500 行代码和 170 张图没有任何版本保护，任何一次误删、误改都恢复不了。先提交一次，之后再考虑分支策略。
+- **仓库初始化**：`main` 分支原本零 commit，所有文件未跟踪。现在有基线提交，单测与生成脚本各自一个提交。
+- **补了 129 条单测**（见 §2），覆盖 importer / parse / prompt / ai / conflicts / store。
+- **导出再导入丢头像**：`importer` 的字段白名单里没有 `avatar`，一导入就把 168 个角色写成了无头像版本。现在加了编译期字段完备性检查，加字段漏登记会直接构建失败。
+- **拖拽丢标签**：`moveSlotTag` 在目标槽已有同名标签时，先删源槽再判定，标签凭空消失。检查挪到了 `splice` 之前。
+- **Pony 的负向自适应完全失效**：负向词写成 `(bad anatomy:1.2)`，比较时没剥权重，规则只对 WAI 生效。现在统一剥掉权重再比。
+- **删掉一条死规则**：`from_behind` 剔除的 `looking_at_viewer` 不在任何负向词表里，永远不会生效。
+- **生成脚本入库**：`tools/build_characters.py`，配 `data:characters` / `data:check` 两个命令，重跑结果与现有文件逐字节一致（除文件头注释）。
+
+### P0 · 会造成损失
 
 **localStorage 快照没有校验。** `readSnapshot` 把 JSON 直接断言成 `Partial<Snapshot>`。如果数据被手改、来自结构不同的旧版本、或写入到一半中断，`globalTags` 里可能出现纯字符串，渲染时 `t.zh` 是 `undefined`，整个应用白屏且每次刷新都复现（因为坏数据还在）。建议：读出来后对每个数组做一次形状检查，不合法就把原始字符串挪到 `prompt-atlas/v3.corrupt.<时间>` 再回退默认值 —— 既不崩，也不吞掉用户数据。
 
 ### P1 · 缺工程保障
 
-**没有任何测试。** 而 `lib/` 下几乎全是纯函数，用 `node:test` 就能跑，不需要装 vitest。最值得先写的三组：
+**没有 lint / format。** 类型检查够严（连测试文件一起查），但没人管组件里的模板顺序、未使用的 CSS、魔法数字。`eslint` + `eslint-plugin-vue` + Prettier，半小时的事。
 
-| 目标 | 一条用例能拦住的真实 bug |
-|---|---|
-| `importer.parseCharacters` | 导出再导入丢 `avatar`（已修） |
-| `parse.parsePrompt` | 多 token 匹配不到、角色后缀认不出、场景挂到角色名下 |
-| `prompt.buildOutputs` | 负向规则引用了词表里不存在的词 |
-
-**没有 lint / format。** 类型检查够严，但没人管组件里的模板顺序、未使用的 CSS、魔法数字。`eslint` + `eslint-plugin-vue` + Prettier，半小时的事。
-
-**生成脚本没有入库。** `characters-extra.ts` 文件头写着「由脚本生成」，但脚本只存在于当时的对话里（规则见 §8）。
+**没有跑在 CI 上。** 三个命令（`test` / `build` / `data:check`）都是本地的，需要人记得跑。仓库还没有远程，接上之后加一个最小 workflow 就够。
 
 ### P2 · 结构
 
@@ -226,7 +244,7 @@ public/avatars/         170 张 160×160 webp 头像，文件名 = Character.ava
 - **`.mask` 的定位在 8 个组件里各写一遍**。第七轮为了去掉 `backdrop-filter` 把背景色挪到了全局，但定位没跟着挪。把 `position: fixed; inset: 0; display: grid; place-items: center; padding: 24px` 补回全局，8 处可以删（抽屉类两个要单独核对）
 - **`.hint` 重复 5 次、`.field` 3 次、`.link` 2 次**，都可以上提到 `main.css`
 - **硬编码颜色约 115 处**散落在组件里，其中不少是变量已有的色值
-- **死代码**：`prompt.ts` 的 `tagsOfSlot` 导出后无人使用；`CONFLICT_RULES` 里 `from_behind` 那条要剔除的 `looking_at_viewer` 根本不在任何负向词表里，是一条不生效的规则
+- **死代码**：`prompt.ts` 的 `tagsOfSlot` 导出后无人使用
 - **z-index 是散落的魔法数字**（20 / 65 / 70 / 71 / 72 / 75 / 76 / 90），可以收成 CSS 变量
 - `store.ts` 539 行，同时负责状态、业务规则、持久化、通知。当前规模还能读，再加功能前建议按「角色 / 槽位 / 历史 / 持久化」拆成几个文件，仍然是模块单例，不需要引入 Pinia
 
@@ -256,5 +274,6 @@ public/avatars/         170 张 160×160 webp 头像，文件名 = Character.ava
 | 点标签 → 下一帧 | p50 约 7ms |
 | 搜索框每敲一键 | 3 ~ 11ms（清空时约 54ms） |
 | 滚动帧间隔 | p95 约 6ms（headless 无垂直同步，只看相对值） |
+| 全部单测 | 129 条，约 1.5 ~ 2 秒 |
 
 一个已知的测量陷阱：headless 模式是软件渲染、有头模式没有垂直同步，两种环境下帧间隔都是常数（16.7ms / 5.6ms），**测不出合成层的卡顿**。之前「弹窗卡顿」那次就是靠排查已知成本项（全屏 `backdrop-filter`）解决的，不是靠数据。

@@ -9,6 +9,8 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "data:characters": "python tools/build_characters.py",
+    "data:check": "python tools/build_characters.py --check",
     "preview": "vite preview"
   },
   "dependencies": {
