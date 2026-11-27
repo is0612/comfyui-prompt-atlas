@@ -59,14 +59,13 @@ async function copy(key: Target, part: 'positive' | 'negative') {
 
     <!-- 三套全空时连页签条一起不渲染：用户该看到的是空态引导，不是三个灰页签配空正文 -->
     <div v-if="hasContent" class="tabbar">
-      <div class="tabs" role="tablist" aria-label="输出目标">
+      <div class="tabs">
         <button
           v-for="t in TARGETS"
           :key="t.key"
-          role="tab"
-          :aria-selected="current === t.key"
           class="tab"
           :class="{ on: current === t.key }"
+          :aria-current="current === t.key"
           @click="view.lastTarget = t.key"
         >
           {{ t.label }}
@@ -186,7 +185,10 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   font-weight: 600;
 }
 
-/* 档位是纯展示，不参与等分；它正好落在「第 4 段」的位置，所以必须防误点 */
+/* 档位是纯展示，不参与等分；它正好落在「第 4 段」的位置。
+   这里不能用 pointer-events: none —— 那会让浏览器永远不弹它的 title，
+   而 title 是右栏唯一说明「档位在顶栏改」的地方；span 没有 handler，不需要它防误点。
+   cursor: default 是为了别显示成可选中的文本光标（配合 user-select: none） */
 .density {
   flex: none;
   padding-left: 12px;
@@ -194,7 +196,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   color: var(--ink-3);
   font-size: var(--fs-caption);
   user-select: none;
-  pointer-events: none;
+  cursor: default;
 }
 
 /* 正文本体：不限高、不内滚 —— 长提示词一次看全，右栏只有面板这一层滚动条 */

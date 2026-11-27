@@ -132,17 +132,24 @@ function onDragOver(target: string, event: DragEvent) {
     </div>
 
     <div v-else class="panel-body">
-      <!-- 折叠行也是合法落点：dragover/drop 挂在整个 .box 上，落完自动展开 -->
+      <!-- 折叠行也是合法落点：dragover/drop 挂在整个 .box 上，落完自动展开。
+           tabindex 让它成为 Tab 可停留的落点选择器；keydown 必须带 .self，
+           否则会把内部 .x / .conflict / .hintdrop 三个真按钮的 Enter 一起吞掉 -->
       <div
         v-for="char in selectedCharItems"
         :key="char.en"
         class="box"
+        tabindex="0"
+        :aria-current="activeSlot === char.en"
+        :aria-label="`把标签加到「${char.zh}」`"
         :class="{
           active: activeSlot === char.en,
           hot: hot === char.en,
           folded: !expanded(char.en),
         }"
         @click="setActiveSlot(char.en)"
+        @keydown.enter.self.prevent="setActiveSlot(char.en)"
+        @keydown.space.self.prevent="setActiveSlot(char.en)"
         @dragover="onDragOver(char.en, $event)"
         @dragleave.self="hot = null"
         @drop="onDrop(char.en, $event)"
@@ -151,7 +158,9 @@ function onDragOver(target: string, event: DragEvent) {
           <span class="name">{{ char.zh }}</span>
           <span v-if="hot === char.en" class="badge">松手加入</span>
           <span v-else-if="expanded(char.en) && activeSlot === char.en" class="badge">收标签</span>
-          <span v-if="!expanded(char.en)" class="count">{{ slotTags(char.en).length }} 标签</span>
+          <span v-if="!expanded(char.en) && slotTags(char.en).length" class="count">
+            {{ slotTags(char.en).length }} 标签
+          </span>
           <!--
             折叠态不显示「手 n/2」，但手部预算并没有失效：
             约束在 store.ts 的 enforceHands（加入时顶掉最旧的手部标签）里强制校验。
@@ -178,12 +187,17 @@ function onDragOver(target: string, event: DragEvent) {
       <!-- 全局标签槽永不折叠：它是场景 / 画风标签唯一的落点，藏起来就没有「可放置」暗示 -->
       <div
         class="gsec"
+        tabindex="0"
+        :aria-current="activeSlot === ''"
+        aria-label="把标签加到全局（场景 / 画风）"
         :class="{
           active: activeSlot === '',
           hot: hot === '',
           bare: !globalTags.length,
         }"
         @click="setActiveSlot('')"
+        @keydown.enter.self.prevent="setActiveSlot('')"
+        @keydown.space.self.prevent="setActiveSlot('')"
         @dragover="onDragOver('', $event)"
         @dragleave.self="hot = null"
         @drop="onDrop('', $event)"
@@ -329,6 +343,21 @@ function onDragOver(target: string, event: DragEvent) {
   border-style: dashed;
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+/* 折叠行给 hover 回执：同屏 .row / .cat / .game / .card 都有，核心操作对象不该唯独没有。
+   展开的卡片不加 —— 它已经是 --panel 白底，再叠一层灰就成了另一种语言。
+   :not(.hot) 是别把 dragover 的 soft 底盖掉 */
+.box.folded:hover:not(.hot),
+.gsec.bare:hover:not(.hot) {
+  background: var(--sunken);
+}
+
+/* 键盘焦点贴内侧：不占布局，也不会被面板的 overflow: hidden 裁掉 */
+.box:focus-visible,
+.gsec:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .box-head {
