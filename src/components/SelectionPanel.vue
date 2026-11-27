@@ -276,9 +276,9 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 /* 选中只换描边颜色，宽度和 padding 一个像素都不动。
-   全局槽也要有这一档：activeSlot 默认就是 ''，不覆盖的话最常落标签的那一格反而最不显眼 */
+   空全局槽（bare）不用整圈描边：它只是一行，重点是「落点在这一格」而不是把整行框起来 */
 .box.active,
-.gsec.active {
+.gsec.active:not(.bare) {
   border-color: var(--accent-line);
 }
 
@@ -290,7 +290,7 @@ function onDragOver(target: string, event: DragEvent) {
   上下各留 8px 是为了不碰圆角（圆角会把 3px 宽的元素钳成 1.5px）。
 */
 .box.active::before,
-.gsec.active::before {
+.gsec.active:not(.bare)::before {
   content: '';
   position: absolute;
   left: -1px;
@@ -299,6 +299,28 @@ function onDragOver(target: string, event: DragEvent) {
   width: 3px;
   border-radius: 2px;
   background: var(--accent);
+}
+
+/*
+  空全局槽被设为落点时（点了「+ 场景 / 画风」）：这一行 34px、margin 0、0 圆角，
+  竖条直接贴满行高，不能复用卡片那条 —— left:-1px 会骑到面板边框上，
+  top/bottom: 8px 在 34px 行里只剩 16px，是根悬空短棍。
+*/
+.gsec.bare.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 0;
+  background: var(--accent);
+}
+
+/* 落点内唯一的可点物也亮起来：否则这段回执只靠左边一条 3px 的线 */
+.gsec.bare.active .hintdrop {
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* dragover 是瞬时态：只换线型和底色，不换宽度；没有左侧竖条，和 active 不共用要素 */
