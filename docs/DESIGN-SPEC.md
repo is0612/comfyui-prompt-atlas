@@ -38,7 +38,7 @@
 │     └─ 标签列表（点击加入当前槽）
 └─ 右栏 输出 Output                               P0 · 400px 宽
    ├─ 页签条（MOSS / WAI / PONY，三段等分，一次只渲染一套）
-   ├─ 正文（型号说明一行 + 提示词 + 负向折叠）
+   ├─ 正文（型号说明一行 + 提示词 + 负向常驻区块）
    └─ 空状态（未选角色时整条页签条不渲染）
 ```
 
@@ -54,7 +54,7 @@
 
 **中栏词库**：标题「补充标签」· 副标「120 条」· 提示「点一下加到 甘雨」· 分类「外形 / 服装 / 动作 / 道具 / 场景 / 风格 / 自定义」
 
-**右栏**：标题「提示词输出」· 副标「标准档」· 动作「AI 润色」「显示负向」· 三块「MOSS 中文段落 + 中文负向」「WAI Illustrious / NoobAI」「PONY score 前缀 + Pony 负向」· 空状态「选好角色，这里就出提示词 / 换档位会改标签数量，改开关会改负向」
+**右栏**：标题「提示词输出」· 动作「AI 润色」「复制正向 · 型号」· 页签「MOSS / WAI / PONY」· 正文上方一行型号说明（「中文段落 + 中文负向」/「Illustrious / NoobAI」/「score 前缀 + Pony 负向」）· 「负向」小标题 + 负向区块（常驻）· 空状态「选好角色，这里就出提示词 / 换档位会改标签数量」
 
 所有文案沿用现有代码里的真实字符串，不新增占位文案。
 
@@ -78,7 +78,8 @@
 3. **新元素的信息必须一步可兑现。** 需要用户切到别处核对才能兑现的，不是信息是噪音。这条判掉了「页签上显示标签计数」。
 4. **能重建自身所要缓解之问题的降级通道，不是降级是后门。** 所以「三套全部展开」被整体移除，而不是改成「不持久化的临时视图」——开关一旦打开就不会有人去关。
 5. **样式规则三段写：`选择器 | 作用于 | 不作用于`，第三栏必填。** 作者写规则时只会想「谁该受影响」，不会主动想「谁不该」，而默认行为恰好漏掉边界。这一轮所有返工都出在第三栏。
-6. **只实现一半的 ARIA 比不实现更糟。** `role="tablist"` 而没有 `tabpanel` / `aria-controls` / roving tabindex / 方向键，会让读屏宣布一个不存在的交互模式。做不到就降级成普通按钮 + `aria-current`。
+6. **折叠不是减法，是转移成本。** 把「同时可见」换成「每次多一次点击 + 布局整体跳动」，在多角色来回改标签的用法下是净亏损。已实测撤销（拼装区折叠、「全部展开」按钮一并删除）。减负优先减**装饰、重复、尺寸不一致**，不要减**可见性**。
+7. **只实现一半的 ARIA 比不实现更糟。** `role="tablist"` 而没有 `tabpanel` / `aria-controls` / roving tabindex / 方向键，会让读屏宣布一个不存在的交互模式。做不到就降级成普通按钮 + `aria-current`。
 
 ## 5. 设计 token
 
@@ -92,7 +93,7 @@
 | `--panel-rest` | `#fbfbfd` | 左右两栏静息表面 |
 | `--panel` | `#ffffff` | 中栏焦点面板、卡片、弹窗 |
 | `--surface` | `#fafafb` | 凹槽、负向块、输入内衬 |
-| `--sunken` | `#f5f5f8` | hover 底、折叠行 hover、页签条 |
+| `--sunken` | `#f5f5f8` | hover 底、词库行 hover |
 | `--sunken-2` | `#eeedf3` | 二阶凹槽 |
 | `--line` | `#e3e3ea` | 全部容器描边、行分隔线（装饰性） |
 | `--line-2` | `#c9c8d6` | 选中态描边、引用块竖条（装饰性） |
@@ -124,24 +125,24 @@
 
 | token | 字号 / 行高 | 字重 | 用途 |
 |---|---|---|---|
-| `font-caption` | 11 / 16 | 400 | 计数、徽标、极简辅助 |
-| `font-body-sm` | 12 / 18 | 400 | 英文 tag、标签芯片、区块说明 |
-| `font-body` | 13 / 20 | 400 | 默认正文、卡片名、列表项 |
-| `font-title` | 15 / 22 | 600 | 面板标题 |
-| `font-heading` | 17 / 24 | 600 | 顶栏标题 |
-| `font-mono-body` | 12 / 18 | 400 | 提示词输出正文（等宽） |
+| `font-caption` | 12 / 17 | 400 | 计数、徽标、极简辅助 |
+| `font-body-sm` | 13 / 19 | 400 | 英文 tag、标签芯片、区块说明 |
+| `font-body` | 14 / 21 | 400 | 默认正文、卡片名、列表项 |
+| `font-title` | 17 / 25 | 600 | 面板标题 |
+| `font-heading` | 19 / 27 | 600 | 顶栏标题 |
+| `font-mono-body` | 13 / 22 | 400 | 提示词输出正文（等宽，`line-height: 1.7`） |
 
-**层级不靠字号，靠字重 + 颜色**：同一 13px，标题用 600 + `text-1`，正文 400 + `text-2`，辅助 400 + `text-3`。现有代码里 9.5 / 10.5 / 11.5 / 12.5 等碎字号已全部收敛为上表五档。
+**层级不靠字号，靠字重 + 颜色**：同一 14px，标题用 600 + `--ink`，正文 400 + `--ink-2`，辅助 400 + `--ink-3`。现有代码里 9.5 / 10.5 / 11.5 / 12.5 等碎字号已全部收敛为上表五档。
 
 **代码侧 CSS 变量映射**（`src/styles/main.css` 的 `:root`，组件里只允许引用这些变量）：
 
 ```
-font-caption      → --fs-caption   11px   计数 / 徽标 / 英文 tag / 极小元信息
-font-body-sm      → --fs-sm        12px   按钮 / 分类 / 芯片 / 区块说明
-font-body         → --fs-body      13px   正文 / 卡片名 / 词条中文
-font-title        → --fs-title     15px   面板标题
-font-heading      → --fs-heading   17px   顶栏标题（预留）
-font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)）
+font-caption      → --fs-caption   12px   计数 / 徽标 / 英文 tag / 极小元信息
+font-body-sm      → --fs-sm        13px   按钮 / 分类 / 芯片 / 区块说明
+font-body         → --fs-body      14px   正文 / 卡片名 / 词条中文
+font-title        → --fs-title     17px   面板标题
+font-heading      → --fs-heading   19px   顶栏标题（预留）
+font-mono-body    → --fs-sm        13px   提示词正文（配合 var(--mono)）
 ```
 
 > 唯一保留的字面量是角色卡占位首字的 `30px`——它是图形化的首字，不参与文字层级。
@@ -160,7 +161,7 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 | `radius-card` | `10px` | 角色卡、输出块、槽 |
 | `radius-panel` | `12px` | 三栏面板 |
 | `radius-pill` | `999px` | 计数徽标、勾选圆点 |
-| `border-width` | `1px` | **盒子四边描边恒 1px**；选中态用 1px 加深，不用 2px 加粗。左侧竖条允许 2–3px（`.row.on` 2px、`.box.active::before` 3px），前提是有等量 padding 补偿，或该元素不存在宽度切换 |
+| `border-width` | `1px` | **盒子四边描边恒 1px**；选中态用 1px 加深，不用 2px 加粗。左侧竖条只保留一处：词库已加入行 `.row.on` 的 2px（配 `padding-left: 8→6` 等量补偿，内容起点不变）。拼装区的 active 竖条已随折叠一并移除 |
 | 虚线 | `1px dashed` | **只表示「这里可以放」**：`.hintdrop` 与 dragover 瞬时态。容器级描边一律实线 |
 | `shadow-none` | 无 | 面板、卡片、列表项**一律不用阴影** |
 | `shadow-overlay` | `0 8px 24px rgba(34,30,53,.10)` | 仅弹窗 / 抽屉，必须同时有 1px 描边 |
@@ -168,20 +169,25 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 | `motion-base` | `160ms cubic-bezier(.2,0,0,1)` | 选中、展开 |
 | `motion-slow` | `200ms cubic-bezier(.2,0,0,1)` | 弹窗、抽屉 |
 
-### 5.5 控件高度（第二批补齐）
+### 5.5 控件高度
 
-用户实测反馈「按钮偏小」，故在首批规格基础上整体上调。代码侧同样用变量，不再写死：
+**第三批（按 27 寸 2K 屏重新标定）**：2K 27" 是 109 PPI，比 1080p 24"（92 PPI）高约 19%——**同样的像素尺寸，在物理上小一圈**。用户反馈「按钮太小、难点到」直接来自这里，不是信息量问题。所以第三次整体上调约 18%，主按钮 40px 在 109 PPI 上约 9.3mm，是鼠标点击的舒适区。
+
+> ⚠️ 这条的教训：前两轮都在解决「按钮偏小」却在 30 / 34 之间微调，因为默认按 96 DPI 的 1080p 想象。**遇到「小 / 挤 / 难点」先问显示器与缩放比例，再动 token。**
+
+| token | 现值 | 用途 | 首批 → 第二批 → 第三批 |
+|---|---|---|---|
 
 | token | 值 | 用途 | 首批规格值 |
 |---|---|---|---|
-| `--h-btn` | 34px | 主按钮 | 28 |
-| `--h-btn-sm` | 30px | 小按钮（粘贴 / 权重 / 清空 / 复制正向等） | 28 |
-| `--h-icon` | 34px | 图标按钮（撤销 / 重做 / 设置等） | ≥28 |
-| `--h-seg` | 30px | 档位段 / 游戏页签 | 28 / 30 |
-| `--h-input` | 32px | 搜索框 / 表单输入 | 32 |
-| `--h-row` | 34px | 词库词条行 | 30 |
-| `--h-chip` | 26px | 已选标签芯片 / 子分类 / 编辑态输入框 | 24 |
-| `--hit-min` | 24px | 收藏星 / 编辑 / 移除 / 清除 / 权重加减的最小命中区 | 20 |
+| `--h-btn` | **40px** | 主按钮 | 28 → 34 → 40 |
+| `--h-btn-sm` | **36px** | 小按钮（粘贴 / 权重 / 清空 / 复制正向等） | 28 → 30 → 36 |
+| `--h-icon` | **40px** | 图标按钮（撤销 / 重做 / 设置等） | 28 → 34 → 40 |
+| `--h-seg` | **36px** | 档位段 / 游戏页签 | 28 → 30 → 36 |
+| `--h-input` | **38px** | 搜索框 / 表单输入 | 32 → 32 → 38 |
+| `--h-row` | **40px** | 词库词条行 | 30 → 34 → 40 |
+| `--h-chip` | **30px** | 已选标签芯片 / 子分类 / 编辑态输入框 | 24 → 26 → 30 |
+| `--hit-min` | **32px** | 收藏星 / 编辑 / 移除 / 清除 / 权重加减的最小命中区 | 20 → 24 → 32 |
 
 状态色也补齐了变量，组件里不再写死十六进制：危险色 `--danger` / `--danger-ink` / `--danger-line` / `--danger-soft` / `--danger-soft-2`，星标 `--star` / `--star-soft` / `--star-line` / `--star-ink`，极浅底 `--surface`，滚动条 `--scroll` / `--scroll-hover`，toast `--toast-bg` / `--toast-warn`。
 
@@ -198,17 +204,17 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 | RoleCard | — | default / hover / selected / focus-visible | 宽 144，图 144×144（`aspect-ratio:1`），下 padding 8 | **卡片本身无边框**（`border:0`），缩略图用 `outline: 1px rgba(34,30,53,.08)` 内缩；hover = 图 `saturate` 回升 `1`；selected = `outline: 2px var(--accent)` + `outline-offset: 2px` + 左上角勾。**不用 border 是因为它会让网格在选中时跳动；不铺 `accent-soft`**（按行重复的元素不填充） |
 | Panel | 3 栏通用 | — | 圆角 12，padding 12，1px 描边 | **无阴影** |
 | PanelHeader | — | — | 高 32，标题 15/600，副标 12/400 text-3 | — |
-| SlotBox（角色槽） | 角色 / 全局（两种形态：卡片 / 34px 行） | folded / active / dragover / conflict | 折叠行 34px（`padding: 0 10px`、`margin: 0`、`radius: 0`）；卡片 `margin: 0 12px 9px`、`padding: 9px 10px 10px`、`radius 10` | **折叠行三边透明、只留 `border-top: var(--line)`**，首行去顶线（`.folded:first-child:not(.hot)`）；卡片四边 `--line` + `--panel` 底；active = `border-color: var(--accent-line)` + `::before` 3px 竖条（卡片 `left:-1px; top/bottom:8px`，**上下各留 8px 避开圆角**；行形态 `left:0; top:0; bottom:0`、`radius:0`）+ 名字 600；dragover = 1px 虚线 + `accent-soft`。**任何状态都不许给容器加 `overflow: hidden`**（会把 `left:-1px` 裁成 2px）。`border-width` 与 `padding` 四态一致，内容起点恒 11px，**没有补偿值** |
+| SlotBox（角色槽 / 全局槽） | 无变体，**恒为展开的卡片** | default / hover / active / dragover / conflict / focus-visible | `margin: 0 12px 9px`、`padding: 9px 10px 10px`、`radius 10` | 四边 `--line` + `--panel` 底；active = `border-color: var(--accent-line)` + 名字 600（**不画左侧竖条**）；hover = `border-color: var(--line-2)`；dragover = 1px 虚线 + `accent-soft`。四条状态规则同为 `(0,2,0)`，**靠源码顺序决胜负**（hover < active < hot），不许引入 `:not()` 链。`border-width` 与 `padding` 全状态一致，内容起点恒 11px。**永不折叠**——见 §4.1 第 7 条 |
 | TagChip | 普通 / 带权重 / 编辑中 | default / hover / selected / focus-visible | 高 26（`--h-chip`），padding 0 8，圆角 6 | 底 = surface，描边 border；hover = border-strong；带权重时右上角 10px 数字 |
 | TagRow（词库行） | — | default / hover / selected | 高 34（`--h-row`），padding 0 8，圆角 6 | hover = `--sunken`；已在本槽 = 左侧 **2px** `--accent` 竖条 + `padding-left: 6px`（8−2，**内容起点仍是 8px，零位移**）+ 中文名 `--accent-ink` 500。**不铺底色** |
-| OutputPanel | 页签（MOSS / WAI / PONY） | default / current | 页签高 30 三段等分；`.density` 纯展示、`pointer-events: auto` 以保住 `title` | **一次只渲染一套**，复制入口唯一（「复制正向 · 型号」）；页签无计数、无 hint（hint 移到正文上方 `.hint-line`）；正文等宽 12/**21**（`line-height: 1.75`）、**无 `max-height`、无内滚**；负向块 `--surface` 底 + 2px `--line-2` 左描边，默认收起。`hasContent === false` 时**整条页签条不渲染** |
+| OutputPanel | 页签（MOSS / WAI / PONY） | default / current | 页签高 `--h-seg` 三段等分；**不显示档位标签**（与顶栏档位控件重复） | **一次只渲染一套**，复制入口唯一（「复制正向 · 型号」）；页签无计数、无 hint（hint 移到正文上方 `.hint-line`）；正文等宽 `--fs-sm` / `line-height: 1.7`、**无 `max-height`、无内滚**；**负向常驻展开**（它是要被复制的正文的一部分，不藏在点击后面），`--surface` 底 + 2px `--line-2` 左描边。`hasContent === false` 时**整条页签条不渲染** |
 | EmptyState | — | — | 居中，图标 26 + 主文 13/500 + 说明 12/text-3 | — |
 | Toast | ok / warn | enter / leave | 高 34，圆角 8，底部 24 | ok = text-1 底白字；warn = warning 底白字（6.04） |
 | Modal / Drawer | — | open / closing | 遮罩 `rgba(34,30,53,.28)` | 唯一允许用 `shadow-overlay` 的地方，且必须带 1px 描边 |
 
 ## 7. 布局与响应式
 
-**栅格**：`grid-template-columns: 480px minmax(0, 1fr) 400px`，`gap: 16`，页面 padding `16`，三栏高度填满视口（`min-height: 100vh`），各栏内部独立滚动，**页面本身不滚**。
+**栅格**：`grid-template-columns: 480px minmax(0, 1fr) 400px`，`gap: 16`，页面 padding `16`，三栏高度填满视口（`min-height: 100vh`），各栏内部独立滚动，**页面本身不滚**。中栏上下分割：拼装区 `max-height: 65%`（按 3 角色 + 全局槽共 4 个盒子实测算，低于此值最后一个盒子会被截断）、词库吃掉剩余高度。
 
 **断点与重排**
 
@@ -275,29 +281,25 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 - [ ] 图片有 `alt`，装饰性图片 `alt=""`
 - [ ] `<768` 可点元素命中区 ≥ 44×44
 
-**第二轮「降疲劳」改版实测（puppeteer + 本机 Edge，1472 / 1280 / 1000 / 760 四档）**
+**第三轮（撤销折叠 + 尺寸上调）实测（puppeteer + 本机 Edge，2560×1400 与 1600×900）**
 
-- [x] 折叠行恒 34px；首行无顶线；行间单线（由「下一行 top + 上一行 bottom 透明」自然形成）
-- [x] active 竖条 3px，卡片 `top/bottom: 8px` 避开圆角，行形态整行通高，无露角无毛刺
-- [x] `.panel-body` 滚动容器固定 **4 个**（每栏一个，`overflow-y: auto` 恒在）；实测**实际发生滚动 2–3 个**（1472 / 1000 / 760 各 2 个、1280 为 3 个），右栏恒 1 个。改版前最坏 7 个
-- [x] 正文 12px / 21px，无 `max-height`、无内滚
-- [x] 词库英文 tag 5.53:1（改版前 4.77:1，被选中行底色拉低；去掉填充后回升）
-- [x] `--ink-3` 5.53:1 白底 / 5.04:1 页面底；`--accent` 5.14 / 4.68
-- [x] 四档视口均无横向溢出、无 `pageerror`、无 console error
-- [x] 页签三段等分、无横向滚动；`.density` 未被裁，盒子右缘距面板内沿 **2px**（它只有 `padding-left: 12px`，无右内边距），文字随之内缩到 2px
-- [x] `.box` / `.gsec` 有 `tabindex` + `role="group"` + `aria-label` + `aria-current`；键盘 Enter 能切换落点，焦点环 2px 品牌色贴内侧
-- [x] 折叠行仍是合法 drop target，落点后自动展开
+- [x] 拼装区所有角色盒**常驻展开**，无折叠、无「全部展开」按钮、无「N 标签」摘要、无折叠箭头
+- [x] 拼装区 active 状态只换描边色 + 名字 600，**不画左侧竖条**
+- [x] 场景 / 风格标签落全局：实测点选「教室」后出现在「全局标签」卡片内，任一角色盒内均无（`GLOBAL_CATEGORIES = ['场景','风格']` 一处判断，点选 / 拖拽 / 粘贴拆解共用）
+- [x] 右栏负向**常驻展开**，无折叠开关；页签条不显示档位标签
+- [x] 左栏无「最近」横条；收藏横条仅在收藏非空时出现
+- [x] 主按钮 40px / 小按钮 36px / 图标 40px / 词库行 40px / 芯片 30px / 命中区 32px
+- [x] 拼装区高度上限 65%：3 角色 + 全局槽共 4 个盒子在 900px 视口下**完整可见、无截断**（42% 时第三个角色会被切掉）
+- [x] 两档视口均无横向溢出、无 `pageerror`、无 console error
+- [x] 折叠行 34px、「N 标签」摘要、`.`/`▸` 箭头、左竖条 —— **已整体移除**，不再是当前形态
 
 ## 10. 未兑现清单
 
-以下四条**不要**在汇报或验收单里写成已完成。
+以下三条**不要**在汇报或验收单里写成已完成。
 
 1. **左栏密度两档（大图 3 列 / 紧凑 4 列）从未实现。** `atlasDensity` 在代码里不存在，`.grid` 仍是 `minmax(140px, 1fr)`。所以「168 张卡从 14 屏压到 1–2 屏」**没有达成**，只靠「最近 / 收藏」两条横条降到约 12 屏。
 2. **`.fav` / `.del` 键盘不可达。** `.row` 是 `<button>`，这两个是内嵌 `<span @click.stop>`，既不可聚焦也只在 hover 时显形（缺 `.row:focus-within`）。真正修好要把 `.row` 降为 `div[role="button"][tabindex="0"]`，属结构改动，单独提交。
 3. **三级表面感知上只有两级**（详见 §5.1），它不是缺陷，但也不构成「焦点面板」效果。
-4. **「全部展开」模式下，展开的非 active 卡片没有 hover 暗示。** 只有 `.box.folded:hover` 有 `--sunken` 底，`.box:not(.active)` 没有 hover 规则——所以在全部展开视图里，鼠标扫过非当前卡片没有任何反馈（点击后仍会有 `active` 描边 + 竖条，所以不是完全无回执）。
-   **故意不修**：需要写成 `.box:not(.active):not(.folded):hover` 这种双重否定链；若写成 `.box:not(.active):hover`，其 `(0,3,0)` 会压过 `.box.folded` 的 `(0,2,0)`，折叠行 hover 时会闪出四边框——正是本轮已经栽过两次的优先级陷阱。该视图低频，记着即可。
-
 ## 11. 待确认
 
 1. **「档位」分段控件是否值得为三档保留视觉差异**？现在三段等宽、用户高频切换；改成下拉可省 60px 宽。影响 §6 的 SegmentedControl。
