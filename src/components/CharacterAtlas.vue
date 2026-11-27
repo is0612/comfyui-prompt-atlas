@@ -187,19 +187,19 @@ function openEditor(char: Character | null) {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 26px;
+  height: var(--h-seg);
   padding: 0 10px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .game span {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--ink-4);
 }
 
@@ -229,7 +229,7 @@ function openEditor(char: Character | null) {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 30px;
+  height: var(--h-input);
   width: 210px;
   padding: 0 9px;
   border: 1px solid var(--line);
@@ -241,7 +241,7 @@ function openEditor(char: Character | null) {
 
 .search:focus-within {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .search input {
@@ -250,7 +250,7 @@ function openEditor(char: Character | null) {
   border: 0;
   outline: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 .search input::placeholder {
@@ -260,6 +260,8 @@ function openEditor(char: Character | null) {
 .clear {
   display: grid;
   place-items: center;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border: 0;
   background: transparent;
   color: var(--ink-3);
@@ -317,8 +319,8 @@ function openEditor(char: Character | null) {
   bottom: 5px;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border: 0;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.88);
@@ -371,7 +373,7 @@ function openEditor(char: Character | null) {
   place-items: center;
   width: 100%;
   height: 100%;
-  color: #fff;
+  color: var(--on-accent);
   font-size: 30px;
   font-weight: 600;
   line-height: 1;
@@ -384,8 +386,8 @@ function openEditor(char: Character | null) {
   right: 5px;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: var(--h-chip);
+  height: var(--h-chip);
   border: 0;
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.82);
@@ -400,7 +402,7 @@ function openEditor(char: Character | null) {
 }
 
 .edit:hover {
-  background: #fff;
+  background: var(--panel);
   color: var(--accent);
 }
 
@@ -410,16 +412,16 @@ function openEditor(char: Character | null) {
   left: 5px;
   display: grid;
   place-items: center;
-  width: 19px;
-  height: 19px;
+  width: 22px;
+  height: 22px;
   border-radius: 99px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .card h3 {
   margin: 8px 2px 0;
-  font-size: 13px;
+  font-size: var(--fs-body);
   font-weight: 600;
   letter-spacing: 0.2px;
   overflow: hidden;
@@ -434,8 +436,8 @@ function openEditor(char: Character | null) {
   padding: 8px 14px;
   border-top: 1px solid var(--line);
   color: var(--ink-3);
-  font-size: 11px;
-  background: #fcfbff;
+  font-size: var(--fs-caption);
+  background: var(--surface);
 }
 
 .filtering {
@@ -451,7 +453,7 @@ function openEditor(char: Character | null) {
 }
 
 .empty .hint {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--ink-4);
 }
 

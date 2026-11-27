@@ -107,13 +107,13 @@ function pick(item: StyleItem) {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
 .title small {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 400;
 }
 
@@ -128,7 +128,7 @@ function pick(item: StyleItem) {
   border-radius: 99px;
   background: var(--accent-soft);
   color: var(--accent-ink);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
 }
 
 .bar {
@@ -136,7 +136,7 @@ function pick(item: StyleItem) {
   gap: 5px;
   padding: 9px 16px;
   border-bottom: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .flt {
@@ -144,9 +144,9 @@ function pick(item: StyleItem) {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .flt:hover {
@@ -182,21 +182,19 @@ function pick(item: StyleItem) {
   padding: 0 0 7px;
   border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fff;
+  background: var(--panel);
   text-align: left;
   overflow: hidden;
-  transition: border-color 0.14s, box-shadow 0.14s, transform 0.14s;
+  transition: border-color 0.14s;
 }
 
 .tile:hover {
-  border-color: var(--accent-line);
-  box-shadow: 0 6px 16px -10px rgba(83, 68, 221, 0.5);
-  transform: translateY(-1px);
+  border-color: var(--accent);
 }
 
 .tile.on {
   border-color: var(--accent-line);
-  background: #fbfaff;
+  background: var(--surface);
 }
 
 .swatch {
@@ -214,14 +212,14 @@ function pick(item: StyleItem) {
   width: 20px;
   height: 20px;
   border-radius: 99px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--panel);
+  border: 1px solid var(--line-2);
   color: var(--accent);
-  box-shadow: 0 1px 4px rgba(20, 16, 40, 0.2);
 }
 
 .name {
   padding: 0 9px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--ink);
 }
@@ -229,7 +227,7 @@ function pick(item: StyleItem) {
 .tag {
   padding: 0 9px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: var(--fs-caption);
   color: var(--ink-4);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -242,12 +240,12 @@ function pick(item: StyleItem) {
   gap: 8px;
   padding: 11px 16px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .muted {
   margin-right: auto;
   color: var(--ink-4);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 </style>

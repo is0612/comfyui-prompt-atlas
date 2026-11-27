@@ -119,13 +119,13 @@ function cancel() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 23px;
+  height: var(--h-chip);
   padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-2);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   cursor: grab;
   transition: border-color 0.15s, background 0.15s, opacity 0.15s;
 }
@@ -153,7 +153,7 @@ function cancel() {
 
 .tag:hover > :deep(svg) {
   opacity: 1;
-  color: #c0392b;
+  color: var(--danger);
 }
 
 .wbadge {
@@ -162,7 +162,7 @@ function cancel() {
   background: var(--accent-soft);
   color: var(--accent-ink);
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
 }
 
 .wt {
@@ -174,12 +174,12 @@ function cancel() {
 .wt-btn {
   display: grid;
   place-items: center;
-  width: 13px;
-  height: 15px;
+  width: 18px;
+  height: 20px;
   border-radius: 4px;
   background: rgba(35, 31, 54, 0.06);
   color: var(--ink-2);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
@@ -194,7 +194,7 @@ function cancel() {
   min-width: 17px;
   text-align: center;
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -202,14 +202,14 @@ function cancel() {
 .icon {
   display: grid;
   place-items: center;
-  width: 15px;
-  height: 15px;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border-radius: 4px;
   color: var(--ink-4);
 }
 
 .icon:hover {
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-2);
 }
 
@@ -219,24 +219,24 @@ function cancel() {
   height: auto;
   padding: 4px 6px;
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
   cursor: default;
 }
 
 .in {
   min-width: 0;
-  height: 20px;
+  height: var(--h-chip);
   padding: 0 5px;
   border: 1px solid var(--line);
   border-radius: 5px;
-  background: #fcfbff;
-  font-size: 11px;
+  background: var(--surface);
+  font-size: var(--fs-caption);
   outline: 0;
 }
 
 .in:focus {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .zh-in {
@@ -246,10 +246,10 @@ function cancel() {
 .en-in {
   flex: 1 1 60%;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 
 .icon.ok:hover {
-  color: #1f8a4c;
+  color: var(--ok);
 }
 </style>

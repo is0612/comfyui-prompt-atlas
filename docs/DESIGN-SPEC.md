@@ -131,7 +131,37 @@
 | `font-heading` | 17 / 24 | 600 | 顶栏标题 |
 | `font-mono-body` | 12 / 18 | 400 | 提示词输出正文（等宽） |
 
-**层级不靠字号，靠字重 + 颜色**：同一 13px，标题用 600 + `text-1`，正文 400 + `text-2`，辅助 400 + `text-3`。现有代码里 9.5 / 10.5 / 11.5 / 12.5 / 13.5 六档碎字号收敛为上表四档。
+**层级不靠字号，靠字重 + 颜色**：同一 13px，标题用 600 + `text-1`，正文 400 + `text-2`，辅助 400 + `text-3`。现有代码里 9.5 / 10.5 / 11.5 / 12.5 等碎字号已全部收敛为上表五档。
+
+**代码侧 CSS 变量映射**（`src/styles/main.css` 的 `:root`，组件里只允许引用这些变量）：
+
+```
+font-caption      → --fs-caption   11px   计数 / 徽标 / 英文 tag / 极小元信息
+font-body-sm      → --fs-sm        12px   按钮 / 分类 / 芯片 / 区块说明
+font-body         → --fs-body      13px   正文 / 卡片名 / 词条中文
+font-title        → --fs-title     15px   面板标题
+font-heading      → --fs-heading   17px   顶栏标题（预留）
+font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)）
+```
+
+> 唯一保留的字面量是角色卡占位首字的 `30px`——它是图形化的首字，不参与文字层级。
+
+### 5.5 控件高度（第二批补齐）
+
+用户实测反馈「按钮偏小」，故在首批规格基础上整体上调。代码侧同样用变量，不再写死：
+
+| token | 值 | 用途 | 首批规格值 |
+|---|---|---|---|
+| `--h-btn` | 34px | 主按钮 | 28 |
+| `--h-btn-sm` | 30px | 小按钮（粘贴 / 权重 / 清空 / 复制正向等） | 28 |
+| `--h-icon` | 34px | 图标按钮（撤销 / 重做 / 设置等） | ≥28 |
+| `--h-seg` | 30px | 档位段 / 游戏页签 | 28 / 30 |
+| `--h-input` | 32px | 搜索框 / 表单输入 | 32 |
+| `--h-row` | 34px | 词库词条行 | 30 |
+| `--h-chip` | 26px | 已选标签芯片 / 子分类 / 编辑态输入框 | 24 |
+| `--hit-min` | 24px | 收藏星 / 编辑 / 移除 / 清除 / 权重加减的最小命中区 | 20 |
+
+状态色也补齐了变量，组件里不再写死十六进制：危险色 `--danger` / `--danger-ink` / `--danger-line` / `--danger-soft` / `--danger-soft-2`，星标 `--star` / `--star-soft` / `--star-line` / `--star-ink`，极浅底 `--surface`，滚动条 `--scroll` / `--scroll-hover`，toast `--toast-bg` / `--toast-warn`。
 
 ### 5.3 间距
 
@@ -159,17 +189,17 @@
 | 组件 | 变体 | 状态 | 关键尺寸 | 依赖 token |
 |---|---|---|---|---|
 | TopBar | — | 固定 | 高 48，左右 padding 16，底部 1px 描边 | border, surface, text-1/3 |
-| SegmentedControl（档位） | 3 段 | default / hover / selected / focus-visible | 高 28，段内 padding 0 10，圆角 6 | sunken 底 + 选中 surface + 描边；选中文字 600 |
-| IconButton | 20 / 28 | default / hover / active / focus-visible / disabled | 命中区 ≥ 28×28 | hover 用 surface-hover 底，不用描边 |
-| Button | primary / secondary / ghost | 同上 | 高 28，padding 0 10，圆角 6 | primary = brand 底 + 白字；secondary = surface + border；ghost 无底 |
-| GameTab | — | default / hover / selected | 高 30，padding 0 10，圆角 6 | selected = surface + border + 600 字重；**不用品牌色填充**（避免三栏都在抢注意力） |
-| SearchField | — | default / focus / filled | 高 32，左图标 14，padding-left 30 | sunken 底 + border；focus 时 border 变 brand + 外环 |
+| SegmentedControl（档位） | 3 段 | default / hover / selected / focus-visible | 高 30（`--h-seg`），段内 padding 0 10，圆角 6 | sunken 底 + 选中 surface + 描边；选中文字 600 |
+| IconButton | 20 / 28 | default / hover / active / focus-visible / disabled | 命中区 34×34（`--h-icon`），卡片内小图标 ≥ 24（`--hit-min`） | hover 用 surface-hover 底，不用描边 |
+| Button | primary / secondary / ghost | 同上 | 高 34（`--h-btn`）/ 30（`--h-btn-sm`），padding 0 10，圆角 6 | primary = brand 底 + 白字；secondary = surface + border；ghost 无底 |
+| GameTab | — | default / hover / selected | 高 30（`--h-seg`），padding 0 10，圆角 6 | selected = surface + border + 600 字重；**不用品牌色填充**（避免三栏都在抢注意力） |
+| SearchField | — | default / focus / filled | 高 32（`--h-input`），左图标 14，padding-left 30 | sunken 底 + border；focus 时 border 变 brand + 外环 |
 | RoleCard | — | default / hover / selected / focus-visible | 宽 144，图 144×144（`aspect-ratio:1`），下 padding 8 | default = surface + border；hover = border-strong + 图叠加 4% 黑；selected = brand-border + brand-soft 底 + 左上角 18px 勾 |
 | Panel | 3 栏通用 | — | 圆角 12，padding 12，1px 描边 | **无阴影** |
 | PanelHeader | — | — | 高 32，标题 15/600，副标 12/400 text-3 | — |
 | SlotBox（角色槽） | 角色 / 全局 | default / active（收标签中）/ dragover / conflict | 圆角 10，padding 8 10 | active = brand-border + brand-soft；dragover = 品牌色 1px 虚线内描边；conflict 时右侧出现 warning 文字按钮 |
-| TagChip | 普通 / 带权重 / 编辑中 | default / hover / selected / focus-visible | 高 24，padding 0 8，圆角 6 | 底 = surface，描边 border；hover = border-strong；带权重时右上角 10px 数字 |
-| TagRow（词库行） | — | default / hover / selected | 高 30，padding 0 8，圆角 6 | hover = surface-hover；已在本槽 = brand-soft + 左侧 2px brand 竖线 |
+| TagChip | 普通 / 带权重 / 编辑中 | default / hover / selected / focus-visible | 高 26（`--h-chip`），padding 0 8，圆角 6 | 底 = surface，描边 border；hover = border-strong；带权重时右上角 10px 数字 |
+| TagRow（词库行） | — | default / hover / selected | 高 34（`--h-row`），padding 0 8，圆角 6 | hover = surface-hover；已在本槽 = brand-soft + 左侧 2px brand 竖线 |
 | OutputBlock | — | default / copied | 圆角 10，padding 10，块间 12 | 正文等宽 12/18，`color-text-1`；块头分隔用 1px 线 |
 | EmptyState | — | — | 居中，图标 26 + 主文 13/500 + 说明 12/text-3 | — |
 | Toast | ok / warn | enter / leave | 高 34，圆角 8，底部 24 | ok = text-1 底白字；warn = warning 底白字（6.04） |
@@ -213,12 +243,13 @@
 ## 9. 验收清单
 
 **视觉**
-- [ ] 面板、卡片、列表项均为 0 阴影；`box-shadow` 全项目只出现在弹窗/抽屉与 toast 上
-- [ ] 卡片无渐变背景，`background-image` 全项目为 0
+- [x] 面板、卡片、列表项均为 0 阴影；`box-shadow` 全项目只出现在弹窗/抽屉与 toast 上
+- [x] 卡片无渐变背景，`background-image` 全项目为 0
 - [ ] 同屏圆角取值 ≤ 3 种（6 / 10 / 12 / 999）
 - [ ] 同屏间距取值全部落在 4/8/12/16/20/24/32
-- [ ] 同屏字号取值 ≤ 4 种（11 / 12 / 13 / 15 / 17）
-- [ ] 三栏顶部基线对齐，面板内 padding 一致（12）
+- [x] 同屏字号取值收敛到 5 档（11 / 12 / 13 / 15 / 17），组件内无字面量字号
+- [x] 三栏顶部基线对齐，面板内 padding 一致（12）
+- [x] 颜色 / 字号 / 控件高度全部由 `:root` 变量提供，组件 scoped style 无硬编码十六进制与字号字面量
 
 **对比度**（用取色器逐个核对，不靠肉眼）
 - [ ] 正文 `#221e35` 对白底 ≥ 16:1

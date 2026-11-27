@@ -27,14 +27,14 @@ import { toasts } from '../store'
 .toast {
   padding: 9px 16px;
   border-radius: 10px;
-  background: #26223a;
-  color: #fff;
-  font-size: 12.5px;
+  background: var(--toast-bg);
+  color: var(--on-accent);
+  font-size: var(--fs-sm);
   box-shadow: var(--shadow-lg);
 }
 
 .toast.warn {
-  background: #8a4b0f;
+  background: var(--toast-warn);
 }
 
 .toast-enter-active,

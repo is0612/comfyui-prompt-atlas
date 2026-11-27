@@ -157,7 +157,7 @@ function restoreTemplate() {
 }
 
 .title {
-  font-size: 13px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
@@ -176,7 +176,7 @@ function restoreTemplate() {
 .group-title {
   margin-bottom: 8px;
   color: var(--ink-3);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   letter-spacing: 0.7px;
 }
 
@@ -197,13 +197,13 @@ function restoreTemplate() {
 }
 
 .label {
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
 }
 
 .hint {
   margin-top: 2px;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.6;
 }
 
@@ -218,7 +218,7 @@ function restoreTemplate() {
   height: 20px;
   border: 0;
   border-radius: 99px;
-  background: #dcd7ea;
+  background: var(--line-2);
   transition: background 0.18s;
 }
 
@@ -229,8 +229,8 @@ function restoreTemplate() {
   width: 16px;
   height: 16px;
   border-radius: 99px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  background: var(--panel);
+  border: 1px solid var(--line-2);
   transition: transform 0.18s;
 }
 
@@ -265,7 +265,7 @@ function restoreTemplate() {
 
 .field > span {
   color: var(--ink-3);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
 }
 
 /* 标题行右侧挂一个小按钮（恢复默认），不额外占一行高度 */
@@ -281,7 +281,7 @@ function restoreTemplate() {
   border: 0;
   background: none;
   color: var(--accent);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   cursor: pointer;
 }
 
@@ -295,7 +295,7 @@ function restoreTemplate() {
   background: var(--sunken);
   color: var(--ink-2);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 
 .field input,
@@ -305,7 +305,7 @@ function restoreTemplate() {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--sunken);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   outline: 0;
   resize: vertical;
 }
@@ -316,23 +316,23 @@ function restoreTemplate() {
 
 .field textarea {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.7;
 }
 
 .field input:focus,
 .field textarea:focus {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .btn.danger {
-  color: #b4382a;
-  border-color: #f0cec8;
-  background: #fdf4f2;
+  color: var(--danger);
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
 }
 
 .btn.danger:hover {
-  background: #fbe9e5;
+  background: var(--danger-soft-2);
 }
 </style>

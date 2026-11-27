@@ -185,13 +185,13 @@ function run() {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
 .title small {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 400;
 }
 
@@ -209,7 +209,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--sunken);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
   resize: vertical;
   outline: 0;
@@ -217,20 +217,20 @@ textarea {
 
 textarea:focus {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .preview {
   margin-top: 12px;
   border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fcfbff;
+  background: var(--surface);
   padding: 10px 12px;
 }
 
 .ph {
   color: var(--ink-3);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   padding-bottom: 8px;
   border-bottom: 1px dashed var(--line);
 }
@@ -240,7 +240,7 @@ textarea:focus {
 }
 
 .warn {
-  color: #b4382a;
+  color: var(--danger);
 }
 
 .grp {
@@ -255,14 +255,14 @@ textarea:focus {
 }
 
 .nm {
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 500;
 }
 
 .gt small {
   color: var(--ink-4);
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
 }
 
 .count {
@@ -271,7 +271,7 @@ textarea:focus {
   border-radius: 99px;
   background: var(--sunken-2);
   color: var(--ink-3);
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 
 .chips {
@@ -288,15 +288,15 @@ textarea:focus {
   padding: 0 7px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-2);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .chip i {
   color: var(--accent-ink);
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: var(--fs-caption);
   font-style: normal;
 }
 
@@ -304,12 +304,12 @@ textarea:focus {
   border-style: dashed;
   color: var(--ink-4);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 
 .more {
   color: var(--ink-4);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   line-height: 21px;
 }
 
@@ -320,7 +320,7 @@ textarea:focus {
 .placeholder {
   padding: 30px 12px;
   color: var(--ink-4);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   text-align: center;
 }
 
@@ -330,7 +330,7 @@ textarea:focus {
   gap: 8px;
   padding: 11px 16px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .keep {
@@ -339,7 +339,7 @@ textarea:focus {
   gap: 6px;
   margin-right: auto;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   cursor: pointer;
 }
 

@@ -83,13 +83,13 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
 .title small {
   color: var(--ink-3);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   font-weight: 400;
 }
 
@@ -106,7 +106,7 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
   padding: 10px 11px;
   border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fff;
+  background: var(--panel);
 }
 
 .meta {
@@ -115,7 +115,7 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
   gap: 8px;
   margin-bottom: 7px;
   color: var(--ink-2);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
 }
 
 .tags {
@@ -123,7 +123,7 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
   border-radius: 99px;
   background: var(--sunken);
   color: var(--ink-3);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
 }
 
 .del {
@@ -140,7 +140,7 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
 
 .del:hover {
   background: var(--sunken);
-  color: #c0392b;
+  color: var(--danger);
 }
 
 .preview {
@@ -150,7 +150,7 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
   background: var(--sunken);
   color: var(--ink-2);
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   line-height: 1.65;
   max-height: 76px;
   overflow: hidden;
@@ -160,6 +160,6 @@ function tagCount(entry: { tags: unknown[]; slots: Record<string, unknown[]> }) 
 
 .hint {
   color: var(--ink-4);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
 }
 </style>

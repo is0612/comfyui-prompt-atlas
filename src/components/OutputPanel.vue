@@ -128,14 +128,14 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   display: flex;
   align-items: baseline;
   gap: 7px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 0.6px;
 }
 
 .name small {
   color: var(--ink-4);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   font-weight: 400;
   letter-spacing: 0;
 }
@@ -152,7 +152,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   background: var(--sunken);
   color: var(--ink);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.75;
   white-space: pre-wrap;
   word-break: break-word;
@@ -162,19 +162,19 @@ async function copy(key: Target, part: 'positive' | 'negative') {
 
 .text.neg {
   color: var(--ink-3);
-  background: #fbfafc;
+  background: var(--surface);
   border: 1px dashed var(--line);
 }
 
 .neg-head {
   margin: 8px 0 5px;
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--ink-4);
   letter-spacing: 0.6px;
 }
 
 .hint {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--ink-4);
   max-width: 220px;
 }

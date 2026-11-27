@@ -126,7 +126,7 @@ const active = ref<(typeof TABS)[number]>('概览')
 }
 
 .title {
-  font-size: 14px;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
@@ -144,7 +144,7 @@ const active = ref<(typeof TABS)[number]>('概览')
   border-radius: 7px;
   background: transparent;
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 .tabs button:hover {
@@ -165,7 +165,7 @@ const active = ref<(typeof TABS)[number]>('概览')
   overscroll-behavior: contain;
   padding: 14px 18px 18px;
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.85;
 }
 
@@ -192,7 +192,7 @@ const active = ref<(typeof TABS)[number]>('概览')
   border-radius: 9px;
   background: var(--sunken);
   color: var(--ink-3);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
 }
 
 dl {
@@ -203,7 +203,7 @@ dt {
   margin-top: 10px;
   color: var(--ink);
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
 }
 
 dt:first-child {

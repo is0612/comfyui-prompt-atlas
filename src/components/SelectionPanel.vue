@@ -225,7 +225,7 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 .gsec {
-  background: #fcfbff;
+  background: var(--surface);
   border-style: dashed;
 }
 
@@ -244,7 +244,7 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 .name {
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 500;
 }
 
@@ -252,36 +252,36 @@ function onDragOver(target: string, event: DragEvent) {
   padding: 1px 6px;
   border-radius: 99px;
   background: var(--accent);
-  color: #fff;
-  font-size: 9.5px;
+  color: var(--on-accent);
+  font-size: var(--fs-caption);
   letter-spacing: 0.3px;
 }
 
 .conflict {
-  padding: 1px 6px;
-  border: 1px solid #f3c9c2;
+  padding: 3px 8px;
+  border: 1px solid var(--danger-line);
   border-radius: 99px;
-  background: #fdf1ef;
-  color: #b4382a;
-  font-size: 9.5px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--fs-caption);
   white-space: nowrap;
 }
 
 .conflict:hover {
-  background: #fbe6e2;
+  background: var(--danger-soft-2);
 }
 
 .hands {
   color: var(--ink-4);
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
 }
 
 .x {
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: var(--hit-min);
+  height: var(--hit-min);
   margin-left: auto;
   border: 0;
   border-radius: 6px;
@@ -292,26 +292,26 @@ function onDragOver(target: string, event: DragEvent) {
 
 .x:hover {
   background: var(--sunken-2);
-  color: #c0392b;
+  color: var(--danger);
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  min-height: 22px;
+  min-height: var(--h-chip);
 }
 
 .hintdrop {
   display: inline-flex;
   align-items: center;
-  height: 23px;
+  height: var(--h-chip);
   color: var(--ink-4);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .hint {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--ink-4);
   max-width: 200px;
 }

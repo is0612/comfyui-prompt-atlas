@@ -186,7 +186,7 @@ function submit() {
 <style scoped>
 .target {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .target b {
@@ -197,7 +197,7 @@ function submit() {
 .bar {
   padding: 9px 12px 10px;
   border-bottom: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 /* 等分网格会把「自定义」这种三字分类压到溢出，改成可换行 */
@@ -208,13 +208,13 @@ function submit() {
 }
 
 .cat {
-  height: 24px;
-  padding: 0 8px;
+  height: var(--h-btn-sm);
+  padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--panel);
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 .cat:hover {
@@ -230,20 +230,20 @@ function submit() {
 }
 
 .cat.star {
-  color: #b9a24a;
+  color: var(--star);
 }
 
 .cat.star.on {
-  border-color: #e6d79a;
-  background: #fdf8e6;
-  color: #8a7320;
+  border-color: var(--star-line);
+  background: var(--star-soft);
+  color: var(--star-ink);
 }
 
 .fav {
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border-radius: 5px;
   color: var(--ink-4);
   opacity: 0;
@@ -254,25 +254,25 @@ function submit() {
 }
 
 .fav.on {
-  color: #d3a838;
+  color: var(--star);
   opacity: 1;
 }
 
 .fav:hover {
-  background: #fff;
-  color: #b8901f;
+  background: var(--panel);
+  color: var(--star);
 }
 
 .search {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  height: var(--h-input);
   margin-top: 7px;
   padding: 0 9px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-3);
 }
 
@@ -286,12 +286,14 @@ function submit() {
   border: 0;
   outline: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 .mini {
   display: grid;
   place-items: center;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border: 0;
   background: transparent;
   color: var(--ink-3);
@@ -306,13 +308,13 @@ function submit() {
 }
 
 .sub {
-  height: 21px;
-  padding: 0 8px;
+  height: var(--h-chip);
+  padding: 0 10px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: var(--sunken);
   color: var(--ink-3);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
 }
 
 .sub.on {
@@ -330,7 +332,7 @@ function submit() {
   align-items: center;
   gap: 8px;
   width: 100%;
-  height: 30px;
+  height: var(--h-row);
   padding: 0 8px;
   border: 0;
   border-radius: 7px;
@@ -354,14 +356,14 @@ function submit() {
 
 .row .zh {
   flex: none;
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
 }
 
 .row .en {
   flex: 1;
   min-width: 0;
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
   color: var(--ink-4);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -374,7 +376,7 @@ function submit() {
   border-radius: 4px;
   background: var(--sunken-2);
   color: var(--ink-4);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
 }
 
 .row.on .zh {
@@ -385,8 +387,8 @@ function submit() {
 .del {
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border-radius: 5px;
   color: var(--ink-4);
   opacity: 0;
@@ -397,15 +399,15 @@ function submit() {
 }
 
 .del:hover {
-  background: #fff;
-  color: #c0392b;
+  background: var(--panel);
+  color: var(--danger);
 }
 
 .tick {
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: var(--hit-min);
+  height: var(--hit-min);
   border-radius: 5px;
   color: var(--ink-4);
   opacity: 0;
@@ -421,14 +423,14 @@ function submit() {
 }
 
 .hint {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--ink-4);
 }
 
 .foot {
   padding: 8px 12px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .foot > .btn {
@@ -442,12 +444,12 @@ function submit() {
 }
 
 .form input {
-  height: 27px;
+  height: var(--h-input);
   padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: #fff;
-  font-size: 12px;
+  background: var(--panel);
+  font-size: var(--fs-sm);
   outline: 0;
 }
 

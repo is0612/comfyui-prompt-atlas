@@ -218,14 +218,14 @@ function stop() {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
 .title small {
   color: var(--ink-3);
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   font-weight: 400;
 }
 
@@ -251,7 +251,7 @@ function stop() {
 
 .field > span {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 textarea {
@@ -260,7 +260,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--sunken);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
   resize: vertical;
   outline: 0;
@@ -268,7 +268,7 @@ textarea {
 
 textarea:focus {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .ops {
@@ -281,17 +281,17 @@ textarea:focus {
 .muted {
   margin-left: auto;
   color: var(--ink-4);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .error {
   margin-bottom: 10px;
   padding: 8px 11px;
-  border: 1px solid #f0c2bb;
+  border: 1px solid var(--danger-line);
   border-radius: 9px;
-  background: #fdf3f1;
-  color: #a63a2a;
-  font-size: 11.5px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
@@ -300,7 +300,7 @@ textarea:focus {
   grid-template-columns: 1fr;
   border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fcfbff;
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -319,7 +319,7 @@ textarea:focus {
 .note {
   margin: 9px 0 0;
   color: var(--ink-4);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.7;
 }
 
@@ -327,7 +327,7 @@ textarea:focus {
   border: 0;
   background: transparent;
   color: var(--accent-ink);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   text-decoration: underline;
   padding: 0;
 }
@@ -343,7 +343,7 @@ textarea:focus {
   border-radius: 4px;
   background: var(--sunken-2);
   color: var(--ink-4);
-  font-size: 9.5px;
+  font-size: var(--fs-caption);
   font-style: normal;
 }
 
@@ -354,13 +354,13 @@ textarea:focus {
   padding: 8px 11px;
   border-bottom: 1px solid var(--line);
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .text {
   margin: 0;
   padding: 11px 12px;
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1.9;
   white-space: pre-wrap;
   word-break: break-word;
@@ -370,14 +370,14 @@ textarea:focus {
 
 .text.mono {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.85;
 }
 
 .placeholder {
   padding: 26px 12px;
   color: var(--ink-4);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   text-align: center;
 }
 
@@ -387,7 +387,7 @@ textarea:focus {
   gap: 8px;
   padding: 11px 16px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .foot .muted {

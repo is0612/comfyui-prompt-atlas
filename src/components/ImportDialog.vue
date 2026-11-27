@@ -160,12 +160,12 @@ function template() {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
 .title small {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 400;
   color: var(--ink-3);
 }
@@ -183,13 +183,13 @@ function template() {
   border-radius: 9px;
   background: var(--sunken);
   color: var(--ink-2);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
 }
 
 .hint-line code {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-caption);
   color: var(--accent-ink);
 }
 
@@ -208,9 +208,9 @@ function template() {
   padding: 0 11px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
 
@@ -230,7 +230,7 @@ textarea {
   border-radius: 10px;
   background: var(--sunken);
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
   resize: vertical;
   outline: 0;
@@ -238,7 +238,7 @@ textarea {
 
 textarea:focus {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .game {
@@ -250,7 +250,7 @@ textarea:focus {
 
 .game label {
   flex: none;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--ink-2);
 }
 
@@ -260,8 +260,8 @@ textarea:focus {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
-  font-size: 12px;
+  background: var(--panel);
+  font-size: var(--fs-sm);
   outline: 0;
 }
 
@@ -276,19 +276,19 @@ textarea:focus {
   border: 1px dashed var(--accent-line);
   background: var(--accent-soft);
   color: var(--accent-ink);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
 .preview.bad {
-  border-color: #f0c2bb;
-  background: #fdf3f1;
-  color: #a63a2a;
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .muted {
   color: var(--ink-3);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
 }
 
 .warn {
@@ -296,7 +296,7 @@ textarea:focus {
 }
 
 .small {
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .foot {
@@ -305,7 +305,7 @@ textarea:focus {
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .foot .muted {

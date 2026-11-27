@@ -1,8 +1,9 @@
 :root {
   --bg: #f2f1f8;
-  --bg-glow: radial-gradient(1200px 600px at 12% -10%, #e9e5ff 0%, transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, #e4f0ff 0%, transparent 55%);
   --panel: #ffffff;
+  /* 反复出现的极浅底（工具条 / 面板脚 / 词库区），原来散在 12 个组件里写 #fcfbff */
+  --surface: #fcfbff;
+  --on-accent: #ffffff;
   --sunken: #f7f6fc;
   --sunken-2: #f1eff9;
   /* 扁平化之后描边是唯一的层次手段，比原来实一点 */
@@ -23,6 +24,38 @@
   --ok: #0a6b45;
   --warn: #8f5510;
   --danger: #a8232a;
+  /* 状态色：之前危险色有 4 套、星标黄有 6 套硬编码，收敛到这里。
+     文字色仍按 WCAG 4.5:1 选，浅底只做背景不承载对比度要求低的正文 */
+  --danger-ink: #b4382a;
+  --danger-line: #f0c2bb;
+  --danger-soft: #fdf3f1;
+  --danger-soft-2: #fbe6e2;
+  --star: #b8901f;
+  --star-soft: #fdf8e6;
+  --star-line: #e6d79a;
+  --star-ink: #8a7320;
+  /* 滚动条与 toast 也是主题的一部分，不再写死在组件里 */
+  --scroll: #d8d3e8;
+  --scroll-hover: #c3bcd8;
+  --toast-bg: #26223a;
+  --toast-warn: #8a4b0f;
+  /* 字号阶梯：只保留 5 档。原来 9 / 9.5 / 10 / 10.5 / 11.5 / 12.5 / 14
+     这些碎字号全部吸附，层级靠字重和颜色区分 */
+  --fs-caption: 11px;
+  --fs-sm: 12px;
+  --fs-body: 13px;
+  --fs-title: 15px;
+  --fs-heading: 17px;
+  /* 控件高度：30px 是舒适下限。小按钮从 26 提到 30，图标按钮 32 提到 34；
+     芯片 23 提到 26，小图标命中区至少 24 */
+  --h-btn: 34px;
+  --h-btn-sm: 30px;
+  --h-icon: 34px;
+  --h-seg: 30px;
+  --h-input: 32px;
+  --h-row: 34px;
+  --h-chip: 26px;
+  --hit-min: 24px;
   --radius: 12px;
   --radius-sm: 6px;
   /* 只在弹窗 / 抽屉 / toast 上用；面板和卡片一律不用投影 */
@@ -47,7 +80,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: var(--fs-body);
   color: var(--ink);
   /* 纯色底。原来那层紫蓝光晕在扁平方向里属于装饰噪音，去掉 */
   background: var(--bg);
@@ -76,14 +109,14 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d8d3e8;
+  background: var(--scroll);
   border-radius: 99px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c3bcd8;
+  background: var(--scroll-hover);
   background-clip: content-box;
 }
 
@@ -97,13 +130,13 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
+  height: var(--h-btn);
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--panel);
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   white-space: nowrap;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
@@ -141,10 +174,10 @@ textarea {
 }
 
 .btn.sm {
-  height: 26px;
-  padding: 0 9px;
-  font-size: 12px;
-  border-radius: 7px;
+  height: var(--h-btn-sm);
+  padding: 0 10px;
+  font-size: var(--fs-sm);
+  border-radius: var(--radius-sm);
 }
 
 .btn.on {
@@ -156,8 +189,8 @@ textarea {
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: var(--h-icon);
+  height: var(--h-icon);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -186,13 +219,13 @@ textarea {
 }
 
 .seg button {
-  height: 26px;
+  height: var(--h-seg);
   padding: 0 10px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
@@ -233,14 +266,14 @@ textarea {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 15px;
+  font-size: var(--fs-title);
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
 .panel-title small {
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 400;
   letter-spacing: 0.2px;
 }
@@ -269,9 +302,9 @@ textarea {
   border: 1px solid var(--line-2);
   border-bottom-width: 2px;
   border-radius: 5px;
-  background: #fff;
+  background: var(--panel);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--ink-2);
 }
 

@@ -164,12 +164,12 @@ function remove() {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
 .title small {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 400;
   color: var(--ink-3);
   font-family: var(--mono);
@@ -200,7 +200,7 @@ function remove() {
 
 .field > span {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .field input,
@@ -210,7 +210,7 @@ function remove() {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--sunken);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   outline: 0;
   resize: vertical;
 }
@@ -221,14 +221,14 @@ function remove() {
 
 .field textarea {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
 .field input:focus,
 .field textarea:focus {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .foot {
@@ -237,7 +237,7 @@ function remove() {
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--surface);
 }
 
 .spacer {
@@ -245,12 +245,12 @@ function remove() {
 }
 
 .btn.danger {
-  color: #b4382a;
-  border-color: #f0cec8;
-  background: #fdf4f2;
+  color: var(--danger);
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
 }
 
 .btn.danger:hover {
-  background: #fbe9e5;
+  background: var(--danger-soft-2);
 }
 </style>

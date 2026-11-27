@@ -59,7 +59,7 @@ const DENSITIES: { key: Density; label: string }[] = [
   height: 58px;
   padding: 0 18px;
   border-bottom: 1px solid var(--line);
-  background: #fff;
+  background: var(--panel);
 }
 
 .brand {
@@ -71,12 +71,12 @@ const DENSITIES: { key: Density; label: string }[] = [
 .mark {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   background: var(--accent);
-  color: #fff;
-  font-size: 15px;
+  color: var(--on-accent);
+  font-size: var(--fs-title);
   font-weight: 700;
   letter-spacing: 0.4px;
 }
@@ -88,12 +88,12 @@ const DENSITIES: { key: Density; label: string }[] = [
 }
 
 .titles strong {
-  font-size: 14px;
+  font-size: var(--fs-title);
   letter-spacing: 0.3px;
 }
 
 .titles span {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--ink-3);
   letter-spacing: 1.1px;
   text-transform: uppercase;
@@ -101,7 +101,7 @@ const DENSITIES: { key: Density; label: string }[] = [
 
 .stat {
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 .stat b {
