@@ -54,13 +54,6 @@ async function copy(key: Target, part: 'positive' | 'negative') {
           <BaseIcon name="sparkles" :size="15" />
         </button>
         <button
-          class="icon-btn"
-          :title="view.outputExpandAll ? '只看一套' : '三套全部展开'"
-          @click="view.outputExpandAll = !view.outputExpandAll"
-        >
-          <BaseIcon name="layers" :size="15" />
-        </button>
-        <button
           class="btn sm primary"
           :disabled="!hasContent"
           :title="`复制 ${currentLabel} 正向`"
@@ -74,7 +67,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
     </div>
 
     <!-- 三套全空时连页签条一起不渲染：用户该看到的是空态引导，不是三个灰页签配空正文 -->
-    <div v-if="hasContent && !view.outputExpandAll" class="tabbar">
+    <div v-if="hasContent" class="tabbar">
       <div class="tabs" role="tablist" aria-label="输出目标">
         <button
           v-for="t in TARGETS"
@@ -98,7 +91,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
         <div class="hint">换档位会改标签数量，改开关会改负向</div>
       </div>
 
-      <template v-else-if="!view.outputExpandAll">
+      <template v-else>
         <div class="hint-line">{{ currentHint }}</div>
         <pre class="text">{{ outputs[current].positive || '—' }}</pre>
         <template v-if="outputs[current].negative">
@@ -107,26 +100,6 @@ async function copy(key: Target, part: 'positive' | 'negative') {
           </button>
           <pre v-if="view.showNegative" class="text neg">{{ outputs[current].negative }}</pre>
         </template>
-      </template>
-
-      <template v-else>
-        <div
-          v-for="t in TARGETS"
-          :key="t.key"
-          class="block"
-          :class="{ current: current === t.key }"
-          @click="view.lastTarget = t.key"
-        >
-          <div class="block-head">
-            <div class="name">{{ t.label }} <small>{{ t.hint }}</small></div>
-            <span v-if="current === t.key" class="cur">当前</span>
-          </div>
-          <pre class="text">{{ outputs[t.key].positive || '—' }}</pre>
-          <template v-if="view.showNegative">
-            <div class="neg-head">负向</div>
-            <pre class="text neg">{{ outputs[t.key].negative }}</pre>
-          </template>
-        </div>
       </template>
     </div>
   </section>
@@ -171,14 +144,14 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   }
 }
 
-/* 页签条：三段等分，名字之外什么都没有 —— 计数不随操作变化，是噪音不是信息 */
+/* 页签条直接坐在静息表面上，不再叠一层 sunken 底。
+   三段等分，名字之外什么都没有 —— 计数不随操作变化，是噪音不是信息 */
 .tabbar {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 2px;
   border-bottom: 1px solid var(--line);
-  background: var(--sunken);
 }
 
 .tabs {
@@ -254,61 +227,6 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   background: transparent;
   color: var(--ink-3);
   font-size: var(--fs-caption);
-}
-
-/* 三套全展开：块之间只留一条 1px 分隔线，不要每块套一个盒子 */
-.block {
-  padding-top: 12px;
-  cursor: pointer;
-}
-
-.block + .block {
-  margin-top: 12px;
-  border-top: 1px solid var(--line);
-}
-
-.block.current .name {
-  color: var(--accent-ink);
-}
-
-.cur {
-  flex: none;
-  padding: 1px 6px;
-  border-radius: 99px;
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  font-size: var(--fs-caption);
-}
-
-.block-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.name {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: 0.6px;
-}
-
-.name small {
-  color: var(--ink-3);
-  font-size: var(--fs-caption);
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-.neg-head {
-  margin: 8px 0 5px;
-  font-size: var(--fs-caption);
-  color: var(--ink-3);
-  letter-spacing: 0.6px;
 }
 
 .hint {

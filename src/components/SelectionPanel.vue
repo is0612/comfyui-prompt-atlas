@@ -140,7 +140,6 @@ function onDragOver(target: string, event: DragEvent) {
         :class="{
           active: activeSlot === char.en,
           hot: hot === char.en,
-          open: expanded(char.en),
           folded: !expanded(char.en),
         }"
         @click="setActiveSlot(char.en)"
@@ -182,7 +181,6 @@ function onDragOver(target: string, event: DragEvent) {
         :class="{
           active: activeSlot === '',
           hot: hot === '',
-          filled: globalTags.length > 0,
           bare: !globalTags.length,
         }"
         @click="setActiveSlot('')"
@@ -239,9 +237,10 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 /*
-  四种状态（折叠行 / 展开 / active / dragover）的 border-width 与 padding 完全相同，
-  只换颜色和线型 —— 内容起点永远是 1 + 10 = 11px，位移在物理上不可能发生，也就不需要补偿值。
-  ⚠️ 这是本文件的硬约束：任何状态都不要改 border-width，改了就会抖。
+  基础态 = 展开的盒子：四边都有线，这是「盒子」的形态。
+  折叠行是例外（下面 .folded 才改），不要把透明边推广到基础态。
+  ⚠️ 硬约束：border-width 与 padding 在所有状态里完全一致，内容起点恒为 1 + 10 = 11px。
+  任何状态都不许改宽度 —— 改了就会位移，而这份规格要求 transform: 0、hover 不位移。
 */
 .box,
 .gsec {
@@ -249,54 +248,46 @@ function onDragOver(target: string, event: DragEvent) {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border: 1px solid transparent;
-  border-radius: 0;
-  background: transparent;
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 9px 10px 10px;
+  margin: 0 12px 9px;
+  background: var(--panel);
   cursor: pointer;
 }
 
-/* 折叠行 / 空全局槽：34px 一行，顶线由下面的兄弟选择器补，不用 margin 制造间距 */
-.box,
+/* 折叠行 / 空全局槽：是一行，不是盒子。三边透明、只留上边线 */
+.box.folded,
 .gsec.bare {
   height: 34px;
   padding: 0 10px;
-}
-
-/*
-  行间分隔线只改颜色不加宽度。首条不画：面板头自带 border-bottom；
-  末尾不画：.foot 自带 border-top。
-  :not(.active):not(.hot) 是避开这两种状态自己的描边 —— 它们用 accent 色和虚线，
-  被这条规则按住的话会出现「三边虚线、顶边实线」。
-*/
-.panel-body > .box + .box:not(.active):not(.hot),
-.panel-body > .box + .gsec:not(.hot) {
+  margin: 0;
+  border-color: transparent;
   border-top-color: var(--line);
+  border-radius: 0;
+  background: transparent;
 }
 
-/* 展开态：当前在收标签的角色盒、「全部展开」时的所有盒，和有标签的全局槽走卡片形态。
-   ⚠️ 形态（open）和选中（active）必须分开：全部展开时只有一个盒是 active，
-   但如果用 active 当展开判据，其余盒会因为停在 34px 而被芯片撑破 */
-.box.open,
-.gsec.filled {
-  height: auto;
-  margin: 0 12px 8px;
-  padding: 8px 10px;
-  justify-content: flex-start;
-  border-color: var(--line);
-  border-radius: var(--radius-card);
-  background: var(--panel);
+/* 首行是折叠行是常态（activeSlot 为空时所有盒都折叠）：此时不画上边线，
+   否则会和面板头的 border-bottom 凑成两条平行细线。:not(.hot) 是别按住 dragover 的虚线 */
+.box.folded:first-child:not(.hot) {
+  border-top-color: transparent;
 }
 
-/* 选中只换描边颜色，宽度和 padding 一个像素都不动 */
+/* 选中只换描边颜色，宽度和 padding 一个像素都不动。
+   空全局槽（bare）排除在外：activeSlot 默认就是 ''，否则一进页面那行就自带一圈品牌色描边 */
 .box.active,
-.gsec.filled.active {
+.gsec.active:not(.bare) {
   border-color: var(--accent-line);
 }
 
 /*
-  active 的 3px 竖条是装饰层，不占布局：border-width 才能全程保持 1px。
-  短一截（上下各留 8px）是为了不碰 11px 圆角 —— 圆角会把 3px 宽的元素钳成 1.5px，
-  而给盒子加 overflow: hidden 又会把 left: -1px 裁掉一半。
+  active 的 3px 竖条是装饰层，不参与布局：border-width 才能全程保持 1px。
+  left: -1px 而不是 0 —— 绝对定位的包含块是 padding box，写 0 会在竖条和盒子外沿
+  之间露出 1px 的 --accent-line，读成「1px 浅紫 + 3px 深紫」的 4px 双色边。
+  ⚠️ .box 绝不能加 overflow: hidden，会把 -1px 裁掉一半。
+  上下各留 8px 是为了不碰圆角（圆角会把 3px 宽的元素钳成 1.5px）。
 */
 .box.active::before {
   content: '';
@@ -309,7 +300,7 @@ function onDragOver(target: string, event: DragEvent) {
   background: var(--accent);
 }
 
-/* dragover 是瞬时态：1px 虚线 + soft 底，没有左侧竖条，和 active 不共用任何要素 */
+/* dragover 是瞬时态：只换线型和底色，不换宽度；没有左侧竖条，和 active 不共用要素 */
 .box.hot,
 .gsec.hot {
   border-style: dashed;
@@ -325,8 +316,7 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 /* 折叠行的盒头撑满 34px，垂直居中 */
-.folded .box-head,
-.bare .box-head {
+.folded .box-head {
   height: 100%;
   margin-bottom: 0;
 }
@@ -388,6 +378,7 @@ function onDragOver(target: string, event: DragEvent) {
   font-size: var(--fs-caption);
 }
 
+/* .x 是可点击元素，不是装饰图标，不能落在 --ink-4（3.5:1） */
 .x {
   display: grid;
   place-items: center;
@@ -397,7 +388,7 @@ function onDragOver(target: string, event: DragEvent) {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: var(--ink-4);
+  color: var(--ink-3);
   flex: none;
 }
 

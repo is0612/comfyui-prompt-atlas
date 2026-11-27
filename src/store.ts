@@ -106,7 +106,6 @@ export interface ViewState {
   showNegative: boolean
   atlasGame: string
   selectionExpandAll: boolean
-  outputExpandAll: boolean
 }
 
 export const view = reactive<ViewState>({
@@ -114,7 +113,6 @@ export const view = reactive<ViewState>({
   showNegative: false,
   atlasGame: '',
   selectionExpandAll: false,
-  outputExpandAll: false,
   ...saved.view,
 })
 
@@ -661,7 +659,6 @@ export function resetAll() {
     showNegative: false,
     atlasGame: '',
     selectionExpandAll: false,
-    outputExpandAll: false,
   })
   undoStack.value = []
   redoStack.value = []
