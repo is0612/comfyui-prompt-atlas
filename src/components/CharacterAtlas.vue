@@ -7,7 +7,6 @@ import {
   charMap,
   games,
   isCharFavorite,
-  recentChars,
   selectedChars,
   setActiveSlot,
   toggleChar,
@@ -51,13 +50,7 @@ function isOn(en: string) {
   return selectedChars.value.includes(en)
 }
 
-/** 最近 / 收藏横条：只留前 8 个，横条本身不该变成第二排图鉴 */
-const recentItems = computed(() =>
-  recentChars.value
-    .map((en) => charMap.value.get(en))
-    .filter((c): c is Character => Boolean(c))
-    .slice(0, 8),
-)
+/** 收藏横条：只留前 8 个，横条本身不该变成第二排图鉴 */
 const favItems = computed(() =>
   charFavorites.value
     .map((en) => charMap.value.get(en))
@@ -124,20 +117,6 @@ function openEditor(char: Character | null) {
     </div>
 
     <div class="panel-body">
-      <div v-if="recentItems.length" class="strip">
-        <span class="strip-label">最近</span>
-        <button v-for="c in recentItems" :key="c.en" class="mini-ava" :class="{ on: isOn(c.en) }" :title="c.zh" @click="pickMini(c)">
-          <img
-            v-if="c.avatar && !failed.has(c.avatar)"
-            :src="`${BASE}avatars/${c.avatar}.webp`"
-            :alt="c.zh"
-            loading="lazy"
-            decoding="async"
-            @error="failed.add(c.avatar)"
-          />
-          <span v-else class="mini-ph" :style="{ '--el': nameTint(c.zh) }">{{ c.zh.slice(0, 1) }}</span>
-        </button>
-      </div>
       <div v-if="favItems.length" class="strip">
         <span class="strip-label">收藏</span>
         <button v-for="c in favItems" :key="c.en" class="mini-ava" :class="{ on: isOn(c.en) }" :title="c.zh" @click="pickMini(c)">

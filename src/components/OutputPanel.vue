@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import BaseIcon from './BaseIcon.vue'
 import { copyText } from '../lib/clipboard'
-import { notify, outputs, selectedCharItems, settings, totalTagCount, ui, view } from '../store'
+import { notify, outputs, selectedCharItems, totalTagCount, ui, view } from '../store'
 import type { Target } from '../types'
 
 const TARGETS = [
@@ -18,8 +18,6 @@ const current = computed(() => view.lastTarget)
 const currentLabel = computed(() => TARGETS.find((t) => t.key === view.lastTarget)?.label ?? '')
 /** 页签只放名字，说明文字单独一行放正文上方，页签才能三段等分且不换行 */
 const currentHint = computed(() => TARGETS.find((t) => t.key === view.lastTarget)?.hint ?? '')
-
-const densityLabel = computed(() => ({ lite: '精简', normal: '标准', rich: '复杂' })[settings.density])
 
 const hasContent = computed(() => selectedCharItems.value.length > 0 || totalTagCount.value > 0)
 
@@ -71,30 +69,21 @@ async function copy(key: Target, part: 'positive' | 'negative') {
           {{ t.label }}
         </button>
       </div>
-      <span class="density" title="档位在顶栏切换">{{ densityLabel }}档</span>
     </div>
 
     <div class="panel-body">
       <div v-if="!hasContent" class="empty">
         <BaseIcon name="sparkles" :size="26" />
         <div>选好角色，这里就出提示词</div>
-        <div class="hint">换档位会改标签数量，改开关会改负向</div>
+        <div class="hint">换档位会改标签数量</div>
       </div>
 
       <template v-else>
         <div class="hint-line">{{ currentHint }}</div>
         <pre class="text">{{ outputs[current].positive || '—' }}</pre>
-        <template v-if="outputs[current].negative">
-          <button
-            class="neg-toggle"
-            :class="{ on: view.showNegative }"
-            :aria-expanded="view.showNegative"
-            @click="view.showNegative = !view.showNegative"
-          >
-            负向 <span>{{ view.showNegative ? '▾' : '▸' }}</span>
-          </button>
-          <pre v-if="view.showNegative" class="text neg">{{ outputs[current].negative }}</pre>
-        </template>
+        <!-- 负向常驻展开：它是要被复制的正文的一部分，不该藏在一次点击后面 -->
+        <div v-if="outputs[current].negative" class="neg-head">负向</div>
+        <pre v-if="outputs[current].negative" class="text neg">{{ outputs[current].negative }}</pre>
       </template>
     </div>
   </section>
@@ -185,20 +174,6 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   font-weight: 600;
 }
 
-/* 档位是纯展示，不参与等分；它正好落在「第 4 段」的位置。
-   这里不能用 pointer-events: none —— 那会让浏览器永远不弹它的 title，
-   而 title 是右栏唯一说明「档位在顶栏改」的地方；span 没有 handler，不需要它防误点。
-   cursor: default 是为了别显示成可选中的文本光标（配合 user-select: none） */
-.density {
-  flex: none;
-  padding-left: 12px;
-  border-left: 1px solid var(--line);
-  color: var(--ink-3);
-  font-size: var(--fs-caption);
-  user-select: none;
-  cursor: default;
-}
-
 /* 正文本体：不限高、不内滚 —— 长提示词一次看全，右栏只有面板这一层滚动条 */
 .hint-line {
   margin-bottom: 8px;
@@ -227,22 +202,6 @@ async function copy(key: Target, part: 'positive' | 'negative') {
 }
 
 /* 负向的唯一入口：贴着负向内容，并且展开/收起有明显状态差别（窄屏也一样） */
-.neg-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink-3);
-  font-size: var(--fs-caption);
-}
-
-.neg-toggle.on {
-  color: var(--ink);
-}
-
 .hint {
   font-size: var(--fs-sm);
   color: var(--ink-3);

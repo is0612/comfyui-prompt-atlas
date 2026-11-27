@@ -38,7 +38,6 @@ interface Snapshot {
   favorites: string[]
   charFavorites: string[]
   view?: Partial<ViewState>
-  recentChars?: string[]
 }
 
 function readSnapshot(): Partial<Snapshot> {
@@ -94,25 +93,20 @@ export const favorites = ref<string[]>(saved.favorites ?? [])
 /** 收藏的角色 en：168 个角色里反复用的就那几个，给个置顶入口 */
 export const charFavorites = ref<string[]>(saved.charFavorites ?? [])
 /** 最近加进拼装的角色 en，新的在前：下次打开不用再从 168 个里翻 */
-export const recentChars = ref<string[]>(saved.recentChars ?? [])
 
 /**
  * 视图状态：刷新后该留在原处的东西。
- * 和 ui 的区别是这些要落盘 —— 上次在看哪个模型、哪个游戏、有没有展开负向，
+ * 和 ui 的区别是这些要落盘 —— 上次在看哪个模型、筛的是哪个游戏，
  * 重新打开还在原处，不用每次从头点一遍。
  */
 export interface ViewState {
   lastTarget: Target
-  showNegative: boolean
   atlasGame: string
-  selectionExpandAll: boolean
 }
 
 export const view = reactive<ViewState>({
   lastTarget: 'wai',
-  showNegative: false,
   atlasGame: '',
-  selectionExpandAll: false,
   ...saved.view,
 })
 
@@ -518,7 +512,6 @@ export function toggleChar(en: string) {
     selectedChars.value.push(en)
     if (!charTags.value[en]) charTags.value[en] = []
     activeSlot.value = en
-    recentChars.value = [en, ...recentChars.value.filter((x) => x !== en)].slice(0, 12)
   }
 }
 
@@ -653,13 +646,7 @@ export function resetAll() {
   history.value = []
   favorites.value = []
   charFavorites.value = []
-  recentChars.value = []
-  Object.assign(view, {
-    lastTarget: 'wai',
-    showNegative: false,
-    atlasGame: '',
-    selectionExpandAll: false,
-  })
+  Object.assign(view, { lastTarget: 'wai', atlasGame: '' })
   undoStack.value = []
   redoStack.value = []
   notify('本地数据已清空')
@@ -684,7 +671,6 @@ function persist() {
       favorites: favorites.value,
       charFavorites: charFavorites.value,
       view: { ...view },
-      recentChars: recentChars.value,
     }
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(snapshot))
@@ -710,7 +696,6 @@ watch(
     favorites,
     charFavorites,
     view,
-    recentChars,
   ],
   persist,
   { deep: true },

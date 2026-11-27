@@ -116,12 +116,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   min-height: 0;
 }
 
-/* 拼装区按内容长，最多占 42%；词库吃掉剩下的高度。
+/* 拼装区按内容长，最多占 58%；词库吃掉剩下的高度。
    ⚠️ 这里必须 shrink:0 —— 词库内容很长，否则负空间会把拼装区一起压扁。
-   上限从 50% 收到 42%：拼装区改成一格一行之后本来就矮，多出来的高度留给词库 */
+   65% 是按「3 个角色 + 全局槽全部展开」实测算的：4 个盒子（含头 40 + 芯片 30 + 内边距 19
+   + 间距 9）≈ 400px，加面板头 ~50 与 .foot ~60 共约 510px；900px 视口下 58% 只有 471px，
+   最后一个盒子会被裁掉一半。压到 42% 时连第三个角色都看不全 */
 .middle > :first-child {
   flex: 0 0 auto;
-  max-height: 42%;
+  max-height: 65%;
 }
 
 .middle > :last-child {
