@@ -212,7 +212,11 @@ function enforceExclusive(list: SlotTag[], tag: SlotTag) {
   }
 }
 
-/** 手部预算：一个槽两只手，超了从最旧的手部动作开始顶 */
+/**
+ * 手部预算：一个槽两只手，超了从最旧的手部动作开始顶。
+ * ⚠️ 拼装区折叠后不再显示「手 n/2」，但校验仍然必须在这里强制执行 ——
+ * 界面上的指示器只是回显，隐藏指示器 ≠ 不校验，别因为「界面上看不到」就删掉这段。
+ */
 function enforceHands(list: SlotTag[], tag: SlotTag) {
   if (!settings.handBudget) return
   const cost = handCost(tag.en)

@@ -16,6 +16,8 @@ const copied = ref('')
 /** 当前在看哪个模型：落盘，下次打开还是同一个 */
 const current = computed(() => view.lastTarget)
 const currentLabel = computed(() => TARGETS.find((t) => t.key === view.lastTarget)?.label ?? '')
+/** 页签只放名字，说明文字单独一行放正文上方，页签才能三段等分且不换行 */
+const currentHint = computed(() => TARGETS.find((t) => t.key === view.lastTarget)?.hint ?? '')
 
 const densityLabel = computed(() => ({ lite: '精简', normal: '标准', rich: '复杂' })[settings.density])
 
@@ -37,13 +39,16 @@ async function copy(key: Target, part: 'positive' | 'negative') {
 <template>
   <section class="panel output">
     <div class="panel-head">
-      <div class="panel-title">
-        提示词输出
-        <small>{{ densityLabel }}档</small>
-      </div>
+      <div class="panel-title">提示词输出</div>
       <div class="head-actions">
-        <button class="btn sm ghost" @click="view.showNegative = !view.showNegative">
-          {{ view.showNegative ? '隐藏负向' : '显示负向' }}
+        <button
+          class="btn sm ghost neg-btn"
+          :aria-pressed="view.showNegative"
+          :title="view.showNegative ? '隐藏负向' : '显示负向'"
+          @click="view.showNegative = !view.showNegative"
+        >
+          <span class="txt-long">{{ view.showNegative ? '隐藏负向' : '显示负向' }}</span>
+          <span class="txt-short">负向</span>
         </button>
         <button class="icon-btn" title="AI 润色" @click="ui.polishOpen = true">
           <BaseIcon name="sparkles" :size="15" />
@@ -62,23 +67,28 @@ async function copy(key: Target, part: 'positive' | 'negative') {
           @click="copy(current, 'positive')"
         >
           <BaseIcon :name="copied === `${current}-positive` ? 'check' : 'copy'" :size="12" />
-          复制正向 · {{ currentLabel }}
+          <span class="txt-long">复制正向 · {{ currentLabel }}</span>
+          <span class="txt-short">复制 · {{ currentLabel }}</span>
         </button>
       </div>
     </div>
 
-    <div v-if="!view.outputExpandAll" class="tabs" role="tablist">
-      <button
-        v-for="t in TARGETS"
-        :key="t.key"
-        role="tab"
-        :aria-selected="current === t.key"
-        class="tab"
-        :class="{ on: current === t.key }"
-        @click="view.lastTarget = t.key"
-      >
-        {{ t.label }}<small>{{ t.hint }}</small>
-      </button>
+    <!-- 三套全空时连页签条一起不渲染：用户该看到的是空态引导，不是三个灰页签配空正文 -->
+    <div v-if="hasContent && !view.outputExpandAll" class="tabbar">
+      <div class="tabs" role="tablist" aria-label="输出目标">
+        <button
+          v-for="t in TARGETS"
+          :key="t.key"
+          role="tab"
+          :aria-selected="current === t.key"
+          class="tab"
+          :class="{ on: current === t.key }"
+          @click="view.lastTarget = t.key"
+        >
+          {{ t.label }}
+        </button>
+      </div>
+      <span class="density" title="档位在顶栏切换">{{ densityLabel }}档</span>
     </div>
 
     <div class="panel-body">
@@ -89,6 +99,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
       </div>
 
       <template v-else-if="!view.outputExpandAll">
+        <div class="hint-line">{{ currentHint }}</div>
         <pre class="text">{{ outputs[current].positive || '—' }}</pre>
         <template v-if="outputs[current].negative">
           <button class="neg-toggle" :aria-expanded="view.showNegative" @click="view.showNegative = !view.showNegative">
@@ -126,8 +137,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   background: var(--panel-rest);
 }
 
-/* 右栏最窄 320：标题 + 4 个操作在 400px 里放不下一行，
-   不换行会把「复制正向」挤出面板（.panel 是 overflow:hidden） */
+/* 右栏最窄 320（可用 292）：标题 + 三个操作放不进一行，不换行会把「复制正向」挤出面板 */
 .output .panel-head {
   background: var(--panel-rest);
   flex-wrap: wrap;
@@ -146,51 +156,74 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   row-gap: 6px;
 }
 
-/* 三个页签连同 hint 一共约 500px，窄面板里横向滚而不是裁掉第三个 */
-.tabs {
-  display: flex;
-  gap: 4px;
-  padding: 0 12px 10px;
-  border-bottom: 1px solid var(--line);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.tabs::-webkit-scrollbar {
+/* 窄栏降级：负向按钮只留「负向」，主按钮去掉「正向」二字。两条都靠 title 保留完整含义 */
+.txt-short {
   display: none;
 }
 
+@media (max-width: 1320px) {
+  .txt-long {
+    display: none;
+  }
+
+  .txt-short {
+    display: inline;
+  }
+}
+
+/* 页签条：三段等分，名字之外什么都没有 —— 计数不随操作变化，是噪音不是信息 */
+.tabbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px;
+  border-bottom: 1px solid var(--line);
+  background: var(--sunken);
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
 .tab {
-  display: inline-flex;
-  flex: none;
-  align-items: baseline;
-  gap: 6px;
+  flex: 1;
   height: var(--h-btn-sm);
-  padding: 0 10px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-3);
   font-size: var(--fs-sm);
+  font-weight: 500;
 }
 
-.tab small {
+.tab.on {
+  border-color: var(--line-2);
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* 档位是纯展示，不参与等分；它正好落在「第 4 段」的位置，所以必须防误点 */
+.density {
+  flex: none;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: var(--fs-caption);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* 正文本体：不限高、不内滚 —— 长提示词一次看全，右栏只有面板这一层滚动条 */
+.hint-line {
+  margin-bottom: 8px;
   color: var(--ink-3);
   font-size: var(--fs-caption);
 }
 
-.tab.on {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-  font-weight: 600;
-}
-
-.tab.on small {
-  color: var(--accent-ink);
-}
-
-/* 正文本体：不再限高、不再内滚 —— 长提示词一次看全，不用在两处滚动条之间倒手 */
 .text {
   margin: 0;
   padding: 0;
@@ -198,7 +231,7 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   color: var(--ink);
   font-family: var(--mono);
   font-size: var(--fs-sm);
-  line-height: 1.65;
+  line-height: 1.75;
   white-space: pre-wrap;
   word-break: break-word;
 }

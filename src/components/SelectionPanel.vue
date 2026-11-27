@@ -28,7 +28,7 @@ import {
 
 const hot = ref<string | null>(null)
 
-/** 只有「当前在收标签的那一格」和「全部展开」两种情况才铺开芯片，其余折叠成一行 */
+/** 只有「当前在收标签的那一格」和「全部展开」两种情况才铺开芯片，其余收成 34px 一行 */
 const expanded = (en: string) => view.selectionExpandAll || activeSlot.value === en
 
 function conflictLabel(slot: string) {
@@ -58,7 +58,7 @@ function onDrop(target: string, event: DragEvent) {
       moveSlotTag(payload.from, target, payload.en)
     }
     endDrag()
-    // 落点即焦点：折叠的盒子收到标签后自动展开，接着就能继续改它
+    // 落点即焦点：折叠行收到标签后自动展开，接着就能继续改它
     setActiveSlot(target)
     return
   }
@@ -132,6 +132,7 @@ function onDragOver(target: string, event: DragEvent) {
     </div>
 
     <div v-else class="panel-body">
+      <!-- 折叠行也是合法落点：dragover/drop 挂在整个 .box 上，落完自动展开 -->
       <div
         v-for="char in selectedCharItems"
         :key="char.en"
@@ -139,7 +140,8 @@ function onDragOver(target: string, event: DragEvent) {
         :class="{
           active: activeSlot === char.en,
           hot: hot === char.en,
-          collapsed: !expanded(char.en),
+          open: expanded(char.en),
+          folded: !expanded(char.en),
         }"
         @click="setActiveSlot(char.en)"
         @dragover="onDragOver(char.en, $event)"
@@ -148,9 +150,15 @@ function onDragOver(target: string, event: DragEvent) {
       >
         <div class="box-head">
           <span class="name">{{ char.zh }}</span>
-          <span v-if="activeSlot === char.en" class="badge">收标签</span>
+          <span v-if="hot === char.en" class="badge">松手加入</span>
+          <span v-else-if="expanded(char.en) && activeSlot === char.en" class="badge">收标签</span>
           <span v-if="!expanded(char.en)" class="count">{{ slotTags(char.en).length }} 标签</span>
-          <span v-if="handsOf(char.en)" class="hands" title="手部动作占用">手 {{ handsOf(char.en) }}/2</span>
+          <!--
+            折叠态不显示「手 n/2」，但手部预算并没有失效：
+            约束在 store.ts 的 enforceHands（加入时顶掉最旧的手部标签）里强制校验。
+            隐藏指示器 ≠ 不校验，不要顺手把那段删了。
+          -->
+          <span v-if="expanded(char.en) && handsOf(char.en)" class="hands" title="手部动作占用">手 {{ handsOf(char.en) }}/2</span>
           <button
             v-if="conflictLabel(char.en)"
             class="conflict"
@@ -168,17 +176,24 @@ function onDragOver(target: string, event: DragEvent) {
         </div>
       </div>
 
+      <!-- 全局标签槽永不折叠：它是场景 / 画风标签唯一的落点，藏起来就没有「可放置」暗示 -->
       <div
         class="gsec"
-        :class="{ active: activeSlot === '', hot: hot === '' }"
+        :class="{
+          active: activeSlot === '',
+          hot: hot === '',
+          filled: globalTags.length > 0,
+          bare: !globalTags.length,
+        }"
         @click="setActiveSlot('')"
         @dragover="onDragOver('', $event)"
         @dragleave.self="hot = null"
         @drop="onDrop('', $event)"
       >
-        <div class="box-head">
+        <div v-if="globalTags.length" class="box-head">
           <span class="name">全局标签</span>
-          <span v-if="activeSlot === ''" class="badge">收标签</span>
+          <span v-if="hot === ''" class="badge">松手加入</span>
+          <span v-else-if="activeSlot === ''" class="badge">收标签</span>
           <span v-if="handsOf('')" class="hands" title="手部动作占用">手 {{ handsOf('') }}/2</span>
           <button
             v-if="conflictLabel('')"
@@ -188,7 +203,7 @@ function onDragOver(target: string, event: DragEvent) {
           >
             ⚠ {{ conflictLabel('') }}
           </button>
-          <button v-if="globalTags.length" class="x" @click.stop="clearSlot('')"><BaseIcon name="x" :size="12" /></button>
+          <button class="x" title="清空全局标签" @click.stop="clearSlot('')"><BaseIcon name="x" :size="12" /></button>
         </div>
         <div class="chips">
           <TagChip v-for="tag in globalTags" :key="tag.en" slot-key="" :tag="tag" />
@@ -206,10 +221,10 @@ function onDragOver(target: string, event: DragEvent) {
 </template>
 
 <style scoped>
-/* 覆盖全局 flex:1（basis 0 会在自适应父级里塌成 0），改为内容撑高、超限才滚动 */
+/* 折叠行通到面板边，展开卡片自己给 12px 外边距 */
 .panel-body {
   flex: 0 1 auto;
-  padding: 12px;
+  padding: 12px 0;
 }
 
 .panel-head {
@@ -223,50 +238,83 @@ function onDragOver(target: string, event: DragEvent) {
   gap: 4px;
 }
 
+/*
+  四种状态（折叠行 / 展开 / active / dragover）的 border-width 与 padding 完全相同，
+  只换颜色和线型 —— 内容起点永远是 1 + 10 = 11px，位移在物理上不可能发生，也就不需要补偿值。
+  ⚠️ 这是本文件的硬约束：任何状态都不要改 border-width，改了就会抖。
+*/
 .box,
 .gsec {
-  margin-bottom: 8px;
-  padding: 9px 10px 10px 8px;
-  border: 1px solid var(--line);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 折叠行 / 空全局槽：34px 一行，顶线由下面的兄弟选择器补，不用 margin 制造间距 */
+.box,
+.gsec.bare {
+  height: 34px;
+  padding: 0 10px;
+}
+
+/*
+  行间分隔线只改颜色不加宽度。首条不画：面板头自带 border-bottom；
+  末尾不画：.foot 自带 border-top。
+  :not(.active):not(.hot) 是避开这两种状态自己的描边 —— 它们用 accent 色和虚线，
+  被这条规则按住的话会出现「三边虚线、顶边实线」。
+*/
+.panel-body > .box + .box:not(.active):not(.hot),
+.panel-body > .box + .gsec:not(.hot) {
+  border-top-color: var(--line);
+}
+
+/* 展开态：当前在收标签的角色盒、「全部展开」时的所有盒，和有标签的全局槽走卡片形态。
+   ⚠️ 形态（open）和选中（active）必须分开：全部展开时只有一个盒是 active，
+   但如果用 active 当展开判据，其余盒会因为停在 34px 而被芯片撑破 */
+.box.open,
+.gsec.filled {
+  height: auto;
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  justify-content: flex-start;
+  border-color: var(--line);
   border-radius: var(--radius-card);
   background: var(--panel);
-  cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
 }
 
-.box:hover,
-.gsec:hover {
-  border-color: var(--line-2);
-}
-
-/* 选中靠「左边一道 3px 品牌线」，不铺浅紫底：
-   5 个盒子全铺底的话拼装区会变成一片彩色，反而看不出谁在选中 */
+/* 选中只换描边颜色，宽度和 padding 一个像素都不动 */
 .box.active,
-.gsec.active {
+.gsec.filled.active {
   border-color: var(--accent-line);
-  border-left: 3px solid var(--accent);
-  background: var(--panel);
 }
 
+/*
+  active 的 3px 竖条是装饰层，不占布局：border-width 才能全程保持 1px。
+  短一截（上下各留 8px）是为了不碰 11px 圆角 —— 圆角会把 3px 宽的元素钳成 1.5px，
+  而给盒子加 overflow: hidden 又会把 left: -1px 裁掉一半。
+*/
+.box.active::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* dragover 是瞬时态：1px 虚线 + soft 底，没有左侧竖条，和 active 不共用任何要素 */
 .box.hot,
 .gsec.hot {
+  border-style: dashed;
   border-color: var(--accent);
-  border-style: dashed;
   background: var(--accent-soft);
-}
-
-.gsec {
-  background: var(--surface);
-  border-style: dashed;
-}
-
-/* 折叠态：只剩一行，盒头不留底部间距 */
-.collapsed {
-  padding: 8px 10px;
-}
-
-.collapsed .box-head {
-  margin-bottom: 0;
 }
 
 .box-head {
@@ -276,12 +324,26 @@ function onDragOver(target: string, event: DragEvent) {
   margin-bottom: 6px;
 }
 
+/* 折叠行的盒头撑满 34px，垂直居中 */
+.folded .box-head,
+.bare .box-head {
+  height: 100%;
+  margin-bottom: 0;
+}
+
 .name {
   font-size: var(--fs-sm);
   font-weight: 500;
+  color: var(--ink-2);
+}
+
+.box.active .name {
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .badge {
+  flex: none;
   padding: 1px 6px;
   border-radius: 99px;
   background: var(--accent);
@@ -292,12 +354,14 @@ function onDragOver(target: string, event: DragEvent) {
 
 /* 折叠时替掉芯片的一行摘要 */
 .count {
+  flex: none;
   color: var(--ink-3);
   font-size: var(--fs-caption);
 }
 
 .conflict {
-  padding: 3px 8px;
+  flex: none;
+  padding: 1px 7px;
   border: 1px solid var(--danger-line);
   border-radius: 99px;
   background: var(--danger-soft);
@@ -311,12 +375,13 @@ function onDragOver(target: string, event: DragEvent) {
 }
 
 .hands {
+  flex: none;
   color: var(--ink-3);
   font-family: var(--mono);
   font-size: var(--fs-caption);
 }
 
-/* 折叠指示：纯装饰，可以留在 ink-4 */
+/* 折叠指示：纯装饰 */
 .chev {
   flex: none;
   color: var(--ink-4);
@@ -371,6 +436,7 @@ function onDragOver(target: string, event: DragEvent) {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-height: 64px;
   margin: 12px;
   padding: 10px 12px;
   border: 1px dashed var(--line-2);

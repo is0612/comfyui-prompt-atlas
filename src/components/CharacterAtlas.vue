@@ -76,7 +76,7 @@ function pickMini(c: Character) {
 function nameTint(name: string) {
   let h = 0
   for (const ch of name) h = (h * 31 + (ch.codePointAt(0) ?? 0)) % 360
-  return `hsl(${h} 22% 92%)`
+  return `hsl(${h} 20% 92%)`
 }
 
 function openEditor(char: Character | null) {
@@ -256,7 +256,7 @@ function openEditor(char: Character | null) {
 
 .game span {
   font-size: var(--fs-caption);
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 
 .game:hover {
@@ -428,7 +428,7 @@ function openEditor(char: Character | null) {
    上百张图同时重算滤镜是滚动掉帧的典型来源 */
 @media (min-width: 1320px) {
   .thumb img {
-    filter: saturate(0.9);
+    filter: saturate(0.85);
   }
 
   .card:hover .thumb img {
@@ -573,7 +573,7 @@ function openEditor(char: Character | null) {
 
 .empty .hint {
   font-size: var(--fs-sm);
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 
 .empty .acts {

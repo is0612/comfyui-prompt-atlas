@@ -360,9 +360,10 @@ function submit() {
 }
 
 .sub.on {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
   border-color: var(--accent-line);
+  background: var(--panel);
+  color: var(--accent-ink);
+  font-weight: 500;
 }
 
 .panel-body {
@@ -392,8 +393,12 @@ function submit() {
   background: var(--sunken);
 }
 
+/* 选中态：2px 竖条 + 中文名转深。不铺 soft 底 —— 按行重复的元素填色会把预算花光，
+   同屏大面积填充只留主按钮和当前分类 */
 .row.on {
-  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
+  padding-left: 6px;
+  background: transparent;
 }
 
 .row .zh {
