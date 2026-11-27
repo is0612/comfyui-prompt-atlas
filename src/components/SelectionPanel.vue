@@ -134,11 +134,14 @@ function onDragOver(target: string, event: DragEvent) {
     <div v-else class="panel-body">
       <!-- 折叠行也是合法落点：dragover/drop 挂在整个 .box 上，落完自动展开。
            tabindex 让它成为 Tab 可停留的落点选择器；keydown 必须带 .self，
-           否则会把内部 .x / .conflict / .hintdrop 三个真按钮的 Enter 一起吞掉 -->
+           否则会把内部 .x / .conflict / .hintdrop 三个真按钮的 Enter 一起吞掉。
+           role="group" 是给 aria-label 用的：generic role 的 Name From 是 prohibited，
+           名字会被 AT 忽略；group 允许命名，又不会像 role="button" 那样和内部真按钮打架 -->
       <div
         v-for="char in selectedCharItems"
         :key="char.en"
         class="box"
+        role="group"
         tabindex="0"
         :aria-current="activeSlot === char.en"
         :aria-label="`把标签加到「${char.zh}」`"
@@ -187,6 +190,7 @@ function onDragOver(target: string, event: DragEvent) {
       <!-- 全局标签槽永不折叠：它是场景 / 画风标签唯一的落点，藏起来就没有「可放置」暗示 -->
       <div
         class="gsec"
+        role="group"
         tabindex="0"
         :aria-current="activeSlot === ''"
         aria-label="把标签加到全局（场景 / 画风）"
