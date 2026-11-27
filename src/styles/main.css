@@ -5,22 +5,29 @@
   --panel: #ffffff;
   --sunken: #f7f6fc;
   --sunken-2: #f1eff9;
-  --line: #e9e6f3;
-  --line-2: #dcd6ee;
+  /* 扁平化之后描边是唯一的层次手段，比原来实一点 */
+  --line: #e3dfee;
+  --line-2: #cfc8e6;
   --ink: #221e35;
   --ink-2: #5b5674;
-  --ink-3: #918ca6;
-  --ink-4: #b3aec4;
+  /* 对比度修正：原 #918ca6 只有 3.23:1，承载英文 tag / 副标 / 元信息不达标。
+     #6b6580 在白底 5.53:1、页面底 4.93:1，过 4.5 */
+  --ink-3: #6b6580;
+  /* 原 #b3aec4 只有 2.15:1，现在只允许用于禁用态和纯装饰，不再承载信息 */
+  --ink-4: #8b85a0;
   --accent: #6355f0;
-  --accent-ink: #4b3ad6;
+  --accent-ink: #5646e0;
   --accent-soft: #efecfe;
   --accent-line: #d3ccfb;
-  --ok: #0f9d63;
-  --warn: #b9711a;
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow-sm: 0 1px 2px rgba(34, 30, 53, 0.05);
-  --shadow-md: 0 10px 28px -14px rgba(34, 30, 53, 0.28);
+  /* 语义色同样修正到 4.5:1 以上（原 #0f9d63 3.49、#b9711a 3.86） */
+  --ok: #0a6b45;
+  --warn: #8f5510;
+  --danger: #a8232a;
+  --radius: 12px;
+  --radius-sm: 6px;
+  /* 只在弹窗 / 抽屉 / toast 上用；面板和卡片一律不用投影 */
+  --shadow-sm: 0 1px 2px rgba(34, 30, 53, 0.04);
+  --shadow-md: 0 8px 24px rgba(34, 30, 53, 0.1);
   --shadow-lg: 0 28px 70px -28px rgba(34, 30, 53, 0.4);
   --font: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
@@ -42,9 +49,8 @@ body {
   font-family: var(--font);
   font-size: 13px;
   color: var(--ink);
+  /* 纯色底。原来那层紫蓝光晕在扁平方向里属于装饰噪音，去掉 */
   background: var(--bg);
-  background-image: var(--bg-glow);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -95,12 +101,12 @@ textarea {
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--panel);
   color: var(--ink-2);
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s, box-shadow 0.15s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
 .btn:hover {
@@ -109,20 +115,20 @@ textarea {
   color: var(--ink);
 }
 
+/* 扁平：按下只换底色，不做位移 */
 .btn:active {
-  transform: translateY(0.5px);
+  background: var(--sunken-2);
 }
 
 .btn.primary {
-  background: linear-gradient(180deg, #7568f6, #5f50ea);
-  border-color: #5344e0;
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
-  box-shadow: 0 6px 14px -8px rgba(95, 80, 234, 0.9);
 }
 
 .btn.primary:hover {
-  background: linear-gradient(180deg, #6d60f4, #5546e2);
-  color: #fff;
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
 }
 
 .btn.ghost {
@@ -175,24 +181,26 @@ textarea {
 
 .seg button {
   height: 26px;
-  padding: 0 11px;
-  border: 0;
-  border-radius: 8px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
   background: transparent;
   color: var(--ink-3);
   font-size: 12px;
   font-weight: 500;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .seg button:hover {
   color: var(--ink-2);
 }
 
+/* 选中靠「白底 + 描边」，不用投影 */
 .seg button.on {
-  background: #fff;
-  color: var(--accent-ink);
-  box-shadow: var(--shadow-sm);
+  background: var(--panel);
+  border-color: var(--line-2);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .panel {
@@ -202,7 +210,6 @@ textarea {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -213,23 +220,23 @@ textarea {
   justify-content: space-between;
   padding: 11px 14px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #fff, #fcfbff);
+  background: var(--panel);
 }
 
 .panel-title {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
 .panel-title small {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
 }
 
 .panel-body {
@@ -265,7 +272,15 @@ textarea {
 /* 全屏遮罩。⚠️ 刻意不用 backdrop-filter：全屏模糊在滚轮、入场过渡和
    背后内容重绘时都要整屏重算，抽屉里滚动会明显掉帧。加透明度就够压住背景了 */
 .mask {
-  background: rgba(28, 24, 45, 0.3);
+  background: rgba(34, 30, 53, 0.28);
+}
+
+/* 键盘焦点统一成 2px 品牌色外环 + 2px 间距：不占布局，且在页面底上
+   （#6355f0 对 #f2f1f8 = 4.58:1）清晰可见。
+   组件里如果写了 outline: none，要改成只在 :focus-visible 之外生效 */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* 抽屉 / 弹窗共用的淡入。只动 opacity，别在这个祖先上挂 filter/transform */

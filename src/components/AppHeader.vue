@@ -70,13 +70,12 @@ const DENSITIES: { key: Density; label: string }[] = [
   place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: 9px;
-  background: linear-gradient(145deg, #7c6dfa, #5344dd);
+  border-radius: 8px;
+  background: var(--accent);
   color: #fff;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  box-shadow: 0 6px 14px -8px rgba(83, 68, 221, 0.9);
 }
 
 .titles {

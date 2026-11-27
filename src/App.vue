@@ -45,20 +45,21 @@ import ToastHost from './components/ToastHost.vue'
   height: 100%;
 }
 
-/* 图鉴封住上限，多出来的宽度给拼装和输出 */
+/* 图鉴封住上限，多出来的宽度给拼装和输出。
+   左栏下限 480：低于这个宽度三列卡片就挤不下 144 的图 */
 .workspace {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(300px, 560px) minmax(340px, 1fr) minmax(360px, 1fr);
-  gap: 12px;
-  padding: 12px;
+  grid-template-columns: minmax(480px, 540px) minmax(0, 1fr) minmax(360px, 400px);
+  gap: 16px;
+  padding: 16px;
 }
 
 .middle {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-height: 0;
 }
 
@@ -77,8 +78,10 @@ import ToastHost from './components/ToastHost.vue'
 
 @media (max-width: 1320px) {
   .workspace {
-    /* 490 而不是更小：图鉴再窄一列就只放得下 2 张卡，反而更占地方 */
-    grid-template-columns: minmax(280px, 490px) minmax(320px, 1fr) minmax(340px, 1fr);
+    /* 460 而不是更窄：图鉴再窄一列就只放得下 2 张卡，反而更占地方 */
+    grid-template-columns: minmax(440px, 460px) minmax(300px, 1fr) minmax(320px, 360px);
+    gap: 12px;
+    padding: 12px;
   }
 }
 

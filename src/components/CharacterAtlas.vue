@@ -40,7 +40,7 @@ function isOn(en: string) {
 function nameTint(name: string) {
   let h = 0
   for (const ch of name) h = (h * 31 + (ch.codePointAt(0) ?? 0)) % 360
-  return `hsl(${h} 46% 62%)`
+  return `hsl(${h} 42% 54%)`
 }
 
 function openEditor(char: Character | null) {
@@ -141,9 +141,9 @@ function openEditor(char: Character | null) {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 12px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #fff, #fcfbff);
+  background: var(--panel);
 }
 
 .games {
@@ -161,13 +161,13 @@ function openEditor(char: Character | null) {
   gap: 5px;
   height: 26px;
   padding: 0 10px;
-  border: 0;
-  border-radius: 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   background: transparent;
   color: var(--ink-3);
   font-size: 12px;
   font-weight: 500;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .game span {
@@ -180,9 +180,10 @@ function openEditor(char: Character | null) {
 }
 
 .game.on {
-  background: #fff;
-  color: var(--accent-ink);
-  box-shadow: var(--shadow-sm);
+  background: var(--panel);
+  border-color: var(--line-2);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .game.on span {
@@ -249,38 +250,56 @@ function openEditor(char: Character | null) {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 7px 7px 10px;
+  padding: 6px 6px 8px;
   border: 1px solid var(--line);
-  border-radius: 13px;
-  background: linear-gradient(180deg, #fff, #fbfaff);
+  border-radius: 10px;
+  background: var(--panel);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.18s, transform 0.18s, background 0.15s;
+  /* 扁平：只过渡颜色，不位移、不加投影 */
+  transition: border-color 0.12s, background 0.12s;
 }
 
 .card:hover {
   border-color: var(--line-2);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+}
+
+.card:hover .thumb::after {
+  opacity: 1;
 }
 
 .card:focus-visible {
-  border-color: var(--accent-line);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .card.on {
   border-color: var(--accent-line);
-  background: linear-gradient(180deg, #f7f5ff, #efeafe);
-  box-shadow: 0 0 0 2px rgba(99, 85, 240, 0.12);
+  background: var(--accent-soft);
+}
+
+.card.on h3 {
+  font-weight: 600;
 }
 
 /* 图区：正方，圆角裁切，图本身就是 160×160，几乎 1:1 显示 */
 .thumb {
   position: relative;
   aspect-ratio: 1 / 1;
-  border-radius: 9px;
+  border-radius: 7px;
   overflow: hidden;
   background: var(--sunken);
+}
+
+/* 悬停时把图压暗 4%：唯一的反馈，比位移和投影安静得多 */
+.thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(34, 30, 53, 0.04);
+  opacity: 0;
+  transition: opacity 0.12s;
+  pointer-events: none;
 }
 
 .thumb img {
@@ -290,7 +309,8 @@ function openEditor(char: Character | null) {
   object-fit: cover;
 }
 
-/* 没有图 / 图挂了：按名字取色的渐变 + 首字，别留个破图标 */
+/* 没有图 / 图挂了：按名字取色的纯色块 + 首字，别留个破图标。
+   纯色而不是渐变：扁平方向里渐变属于装饰噪音 */
 .thumb .ph {
   display: grid;
   place-items: center;
@@ -300,12 +320,7 @@ function openEditor(char: Character | null) {
   font-size: 30px;
   font-weight: 600;
   line-height: 1;
-  background: linear-gradient(
-    135deg,
-    var(--el, #b9b2d6),
-    color-mix(in srgb, var(--el, #b9b2d6) 52%, #ffffff)
-  );
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: var(--el, #b9b2d6);
 }
 
 .edit {
@@ -345,13 +360,11 @@ function openEditor(char: Character | null) {
   border-radius: 99px;
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 1px 4px rgba(60, 40, 160, 0.35);
 }
 
 .card h3 {
-  /* 只剩名字一行，稍微给点字号和上边距，别贴着图 */
-  margin: 9px 3px 0;
-  font-size: 13.5px;
+  margin: 8px 2px 0;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2px;
   overflow: hidden;

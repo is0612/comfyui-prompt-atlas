@@ -187,20 +187,21 @@ function submit() {
   background: #fcfbff;
 }
 
+/* 等分网格会把「自定义」这种三字分类压到溢出，改成可换行 */
 .cats {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
 .cat {
   height: 24px;
+  padding: 0 8px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: 6px;
+  background: var(--panel);
   color: var(--ink-3);
-  font-size: 11px;
-  padding: 0 2px;
+  font-size: 12px;
 }
 
 .cat:hover {

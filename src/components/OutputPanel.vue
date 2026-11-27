@@ -99,8 +99,8 @@ async function copy(key: Target, part: 'positive' | 'negative') {
   margin-bottom: 12px;
   padding: 10px 11px 11px;
   border: 1px solid var(--line);
-  border-radius: 11px;
-  background: linear-gradient(180deg, #fff, #fbfaff);
+  border-radius: 10px;
+  background: var(--sunken);
 }
 
 .block-head {

@@ -184,9 +184,9 @@ function onDragOver(target: string, event: DragEvent) {
   padding: 9px 10px 10px;
   border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fff;
+  background: var(--panel);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  transition: border-color 0.12s, background 0.12s;
 }
 
 .box:hover,
@@ -197,8 +197,7 @@ function onDragOver(target: string, event: DragEvent) {
 .box.active,
 .gsec.active {
   border-color: var(--accent-line);
-  background: linear-gradient(180deg, #fbfaff, #f5f2ff);
-  box-shadow: 0 0 0 2px rgba(99, 85, 240, 0.09);
+  background: var(--accent-soft);
 }
 
 .box.hot,
@@ -300,14 +299,16 @@ function onDragOver(target: string, event: DragEvent) {
   max-width: 200px;
 }
 
+/* 存历史是次要动作：右对齐小按钮，不要拉满整行抢主操作的权重 */
 .foot {
   display: flex;
+  justify-content: flex-end;
   padding: 8px 12px;
   border-top: 1px solid var(--line);
-  background: #fcfbff;
+  background: var(--panel);
 }
 
 .foot .btn {
-  flex: 1;
+  flex: 0 0 auto;
 }
 </style>
