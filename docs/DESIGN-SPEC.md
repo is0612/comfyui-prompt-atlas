@@ -37,9 +37,9 @@
 │     ├─ 分类页签 + 子类
 │     └─ 标签列表（点击加入当前槽）
 └─ 右栏 输出 Output                               P0 · 400px 宽
-   ├─ 输出块 × 3（MOSS 中文 / WAI / Pony）
-   │  └─ 块头（名称 + 说明 + 复制正向 / 负向）
-   └─ 空状态（未选角色时）
+   ├─ 页签条（MOSS / WAI / PONY，三段等分，一次只渲染一套）
+   ├─ 正文（型号说明一行 + 提示词 + 负向折叠）
+   └─ 空状态（未选角色时整条页签条不渲染）
 ```
 
 **刻意不做**：顶部 Hero、引导轮播、统计卡片、侧面导航栏、右侧属性面板。这是工具，不是官网。
@@ -71,51 +71,51 @@
 - ❌ 不用大圆角（>14px）做「亲和感」、不用彩色描边装饰卡片
 - ❌ 不用紫色做主色铺大面积；品牌色只出现在「当前选中 / 主按钮 / 焦点环」
 
+### 4.1 判据（第二轮「降疲劳」改版沉淀，用来挡掉一整类提案）
+
+1. **填充只允许出现在同屏唯一的元素上。** 按行、按卡重复出现的元素一律不填充。所以 `card.on` / `row.on` / `sub.on` / `box.active` 全部去填充，改成描边 + 左侧竖条。
+2. **「次要」不能用对比度表达。** 对比度只有两档合法语义：≥4.5:1（承载信息）/ 禁用或装饰（非文本图标 ≥3:1）。想安静只能用字号、字重、位置。
+3. **新元素的信息必须一步可兑现。** 需要用户切到别处核对才能兑现的，不是信息是噪音。这条判掉了「页签上显示标签计数」。
+4. **能重建自身所要缓解之问题的降级通道，不是降级是后门。** 所以「三套全部展开」被整体移除，而不是改成「不持久化的临时视图」——开关一旦打开就不会有人去关。
+5. **样式规则三段写：`选择器 | 作用于 | 不作用于`，第三栏必填。** 作者写规则时只会想「谁该受影响」，不会主动想「谁不该」，而默认行为恰好漏掉边界。这一轮所有返工都出在第三栏。
+6. **只实现一半的 ARIA 比不实现更糟。** `role="tablist"` 而没有 `tabpanel` / `aria-controls` / roving tabindex / 方向键，会让读屏宣布一个不存在的交互模式。做不到就降级成普通按钮 + `aria-current`。
+
 ## 5. 设计 token
 
 ### 5.1 颜色
 
-| token | 值 | 用途 | 对比度（白底 / 页面底） |
-|---|---|---|---|
-| `color-bg-page` | `#f2f1f8` | 页面底色 | — |
-| `color-surface` | `#ffffff` | 面板、卡片 | — |
-| `color-surface-sunken` | `#f7f6fc` | 输入框、内嵌凹槽、代码块 | — |
-| `color-surface-hover` | `#f6f5fa` | 列表项 hover | — |
-| `color-border` | `#e3dfee` | 分隔与容器描边 | 1.31（装饰性，不承载识别） |
-| `color-border-strong` | `#cfc8e6` | hover 描边、控件边框 | 1.43 |
-| `color-text-1` | `#221e35` | 标题、正文、关键数值 | **16.09 / 14.34** |
-| `color-text-2` | `#5b5674` | 次要正文、标签中文名 | **6.93 / 6.18** |
-| `color-text-3` | `#6b6580` | 辅助小字、英文 tag、元信息 | **5.53 / 4.93** |
-| `color-text-disabled` | `#8b85a0` | 仅禁用态与装饰（≥18px 才可用于文字） | 3.52 / 3.14 |
-| `color-brand` | `#6355f0` | 选中描边、主按钮底、焦点环 | 5.14 / 4.58 |
-| `color-brand-hover` | `#5646e0` | 主按钮 hover | 6.27 / 5.59 |
-| `color-brand-soft` | `#efecfe` | 选中卡片底色 | — |
-| `color-brand-border` | `#d3ccfb` | 选中态描边 | — |
-| `color-success` | `#0a6b45` | 成功提示文字 | **6.56 / 5.84** |
-| `color-warning` | `#8f5510` | 警告提示文字 / toast 底（白字 6.04） | **6.04 / 5.39** |
-| `color-danger` | `#a8232a` | 删除、错误 | **7.15 / 6.37** |
+**表面与线条**（全部中性灰，不带紫调）
 
-> ⚠️ **这是本次最重要的一处修正**：现有 `--ink-3 #918ca6` 只有 **3.23:1**，却承担了英文 tag、面板副标、卡片元信息等真实信息；`--ink-4 #b3aec4` 只有 **2.15:1**。全部替换为 `color-text-3`。`color-text-disabled` 只允许出现在禁用态和纯装饰。
+| token | 值 | 用途 |
+|---|---|---|
+| `--bg` | `#f4f4f7` | 页面底色 |
+| `--panel-rest` | `#fbfbfd` | 左右两栏静息表面 |
+| `--panel` | `#ffffff` | 中栏焦点面板、卡片、弹窗 |
+| `--surface` | `#fafafb` | 凹槽、负向块、输入内衬 |
+| `--sunken` | `#f5f5f8` | hover 底、折叠行 hover、页签条 |
+| `--sunken-2` | `#eeedf3` | 二阶凹槽 |
+| `--line` | `#e3e3ea` | 全部容器描边、行分隔线（装饰性） |
+| `--line-2` | `#c9c8d6` | 选中态描边、引用块竖条（装饰性） |
 
-**与现有变量的映射（落地时改 `main.css`）**
+> ⚠️ **三级表面在感知上只成立两级，必须如实记账。**
+> 实测：页面底 → 左右栏 **1.06:1**，左右栏 → 中栏 **1.03:1**，页面底 → 中栏 **1.10:1**。大色块的可辨阈约 2% 亮度差，1.03 属于不可辨量级。撑起层次的实际是**页面留白 + 1px 描边**，不是底色差。不要把它当作用底色实现的；再压暗左右栏会让它们看起来像禁用区，代价大于收益，故维持现值。
+>
+> **去紫的理由**：旧值 `#f2f1f8` / `#f7f6fc` / `#e3dfee` 都带蓝紫偏移，与品牌紫同色系，会把「紫 = 可交互」这条语义稀释掉。全部换中性灰后，品牌色才独占「选中 / 主操作 / 焦点」。
 
-```
---bg           #f2f1f8  → color-bg-page
---panel        #ffffff  → color-surface
---sunken       #f7f6fc  → color-surface-sunken
---line         #e9e6f3  → color-border        #e3dfee（描边需更实一点，扁平后它承担全部层次）
---line-2       #dcd6ee  → color-border-strong #cfc8e6
---ink          #221e35  → color-text-1
---ink-2        #5b5674  → color-text-2
---ink-3        #918ca6  → color-text-3        #6b6580  ★ 修正
---ink-4        #b3aec4  → color-text-disabled #8b85a0  ★ 修正，且不再用于任何正文
---accent       #6355f0  → color-brand
---accent-ink   #4b3ad6  → color-brand-hover   #5646e0
---accent-soft  #efecfe  → color-brand-soft
---accent-line  #d3ccfb  → color-brand-border
---ok           #0f9d63  → color-success       #0a6b45  ★ 修正（原 3.49 不达标）
---warn         #b9711a  → color-warning       #8f5510  ★ 修正（原 3.86 不达标）
-```
+**文字、品牌与状态**（对比度实测，脚本计算非目测）
+
+| token | 值 | 用途 | 白底 | 页面底 |
+|---|---|---|---|---|
+| `--ink` | `#221e35` | 正文、标题、关键数值 | **16.09** | 14.66 |
+| `--ink-2` | `#5b5674` | 次要正文、卡片名 | **6.93** | 6.32 |
+| `--ink-3` | `#6b6580` | 辅助小字、英文 tag、元信息 | **5.53** | 5.04 |
+| `--ink-4` | `#8b85a0` | **仅**禁用态与纯装饰图标 | 3.52 | 3.21 |
+| `--accent` | `#6355f0` | 选中描边、主按钮底、焦点环 | **5.14** | 4.68 |
+| `--accent-ink` | `#5646e0` | 品牌色文字 | **6.27** | 5.71 |
+| `--danger` | `#a8232a` | 删除、错误 | **7.15** | 6.51 |
+
+`--ink-4` 的合法用途只有两类：禁用态、纯装饰图标（`.chev` 这类箭头、未激活的 `.fav` / `.tick`）。非文本图标按 WCAG 1.4.11 需 ≥3:1，实测 3.52 达标。
+**明文例外**：搜索框 `::placeholder` 保留 `--ink-4`。提到 `--ink-3` 会和已填内容混淆，且它不承担结果。这是例外，不是漏项。
 
 ### 5.2 字体
 
@@ -146,6 +146,28 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 
 > 唯一保留的字面量是角色卡占位首字的 `30px`——它是图形化的首字，不参与文字层级。
 
+### 5.3 间距
+
+4 的倍数：`space-1 4` · `space-2 8` · `space-3 12` · `space-4 16` · `space-5 20` · `space-6 24` · `space-8 32`
+
+现有取值 3 / 5 / 7 / 9 / 10 / 11 / 13 / 14 全部吸附到以上七档（±2px 视为同一档，不为对齐而微调布局）。
+
+### 5.4 圆角 / 描边 / 阴影 / 动效
+
+| token | 值 | 用途 |
+|---|---|---|
+| `radius-control` | `6px` | 按钮、输入框、芯片、页签 |
+| `radius-card` | `10px` | 角色卡、输出块、槽 |
+| `radius-panel` | `12px` | 三栏面板 |
+| `radius-pill` | `999px` | 计数徽标、勾选圆点 |
+| `border-width` | `1px` | **盒子四边描边恒 1px**；选中态用 1px 加深，不用 2px 加粗。左侧竖条允许 2–3px（`.row.on` 2px、`.box.active::before` 3px），前提是有等量 padding 补偿，或该元素不存在宽度切换 |
+| 虚线 | `1px dashed` | **只表示「这里可以放」**：`.hintdrop` 与 dragover 瞬时态。容器级描边一律实线 |
+| `shadow-none` | 无 | 面板、卡片、列表项**一律不用阴影** |
+| `shadow-overlay` | `0 8px 24px rgba(34,30,53,.10)` | 仅弹窗 / 抽屉，必须同时有 1px 描边 |
+| `motion-fast` | `120ms cubic-bezier(.2,0,0,1)` | hover、颜色过渡 |
+| `motion-base` | `160ms cubic-bezier(.2,0,0,1)` | 选中、展开 |
+| `motion-slow` | `200ms cubic-bezier(.2,0,0,1)` | 弹窗、抽屉 |
+
 ### 5.5 控件高度（第二批补齐）
 
 用户实测反馈「按钮偏小」，故在首批规格基础上整体上调。代码侧同样用变量，不再写死：
@@ -163,27 +185,6 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 
 状态色也补齐了变量，组件里不再写死十六进制：危险色 `--danger` / `--danger-ink` / `--danger-line` / `--danger-soft` / `--danger-soft-2`，星标 `--star` / `--star-soft` / `--star-line` / `--star-ink`，极浅底 `--surface`，滚动条 `--scroll` / `--scroll-hover`，toast `--toast-bg` / `--toast-warn`。
 
-### 5.3 间距
-
-4 的倍数：`space-1 4` · `space-2 8` · `space-3 12` · `space-4 16` · `space-5 20` · `space-6 24` · `space-8 32`
-
-现有取值 3 / 5 / 7 / 9 / 10 / 11 / 13 / 14 全部吸附到以上七档（±2px 视为同一档，不为对齐而微调布局）。
-
-### 5.4 圆角 / 描边 / 阴影 / 动效
-
-| token | 值 | 用途 |
-|---|---|---|
-| `radius-control` | `6px` | 按钮、输入框、芯片、页签 |
-| `radius-card` | `10px` | 角色卡、输出块、槽 |
-| `radius-panel` | `12px` | 三栏面板 |
-| `radius-pill` | `999px` | 计数徽标、勾选圆点 |
-| `border-width` | `1px` | 全部描边；选中态用 1px 加深，不用 2px 加粗 |
-| `shadow-none` | 无 | 面板、卡片、列表项**一律不用阴影** |
-| `shadow-overlay` | `0 8px 24px rgba(34,30,53,.10)` | 仅弹窗 / 抽屉，必须同时有 1px 描边 |
-| `motion-fast` | `120ms cubic-bezier(.2,0,0,1)` | hover、颜色过渡 |
-| `motion-base` | `160ms cubic-bezier(.2,0,0,1)` | 选中、展开 |
-| `motion-slow` | `200ms cubic-bezier(.2,0,0,1)` | 弹窗、抽屉 |
-
 ## 6. 组件清单
 
 | 组件 | 变体 | 状态 | 关键尺寸 | 依赖 token |
@@ -194,13 +195,13 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 | Button | primary / secondary / ghost | 同上 | 高 34（`--h-btn`）/ 30（`--h-btn-sm`），padding 0 10，圆角 6 | primary = brand 底 + 白字；secondary = surface + border；ghost 无底 |
 | GameTab | — | default / hover / selected | 高 30（`--h-seg`），padding 0 10，圆角 6 | selected = surface + border + 600 字重；**不用品牌色填充**（避免三栏都在抢注意力） |
 | SearchField | — | default / focus / filled | 高 32（`--h-input`），左图标 14，padding-left 30 | sunken 底 + border；focus 时 border 变 brand + 外环 |
-| RoleCard | — | default / hover / selected / focus-visible | 宽 144，图 144×144（`aspect-ratio:1`），下 padding 8 | default = surface + border；hover = border-strong + 图叠加 4% 黑；selected = brand-border + brand-soft 底 + 左上角 18px 勾 |
+| RoleCard | — | default / hover / selected / focus-visible | 宽 144，图 144×144（`aspect-ratio:1`），下 padding 8 | **卡片本身无边框**（`border:0`），缩略图用 `outline: 1px rgba(34,30,53,.08)` 内缩；hover = 图 `saturate` 回升 `1`；selected = `outline: 2px var(--accent)` + `outline-offset: 2px` + 左上角勾。**不用 border 是因为它会让网格在选中时跳动；不铺 `accent-soft`**（按行重复的元素不填充） |
 | Panel | 3 栏通用 | — | 圆角 12，padding 12，1px 描边 | **无阴影** |
 | PanelHeader | — | — | 高 32，标题 15/600，副标 12/400 text-3 | — |
-| SlotBox（角色槽） | 角色 / 全局 | default / active（收标签中）/ dragover / conflict | 圆角 10，padding 8 10 | active = brand-border + brand-soft；dragover = 品牌色 1px 虚线内描边；conflict 时右侧出现 warning 文字按钮 |
+| SlotBox（角色槽） | 角色 / 全局（两种形态：卡片 / 34px 行） | folded / active / dragover / conflict | 折叠行 34px（`padding: 0 10px`、`margin: 0`、`radius: 0`）；卡片 `margin: 0 12px 9px`、`padding: 9px 10px 10px`、`radius 10` | **折叠行三边透明、只留 `border-top: var(--line)`**，首行去顶线（`.folded:first-child:not(.hot)`）；卡片四边 `--line` + `--panel` 底；active = `border-color: var(--accent-line)` + `::before` 3px 竖条（卡片 `left:-1px; top/bottom:8px`，**上下各留 8px 避开圆角**；行形态 `left:0; top:0; bottom:0`、`radius:0`）+ 名字 600；dragover = 1px 虚线 + `accent-soft`。**任何状态都不许给容器加 `overflow: hidden`**（会把 `left:-1px` 裁成 2px）。`border-width` 与 `padding` 四态一致，内容起点恒 11px，**没有补偿值** |
 | TagChip | 普通 / 带权重 / 编辑中 | default / hover / selected / focus-visible | 高 26（`--h-chip`），padding 0 8，圆角 6 | 底 = surface，描边 border；hover = border-strong；带权重时右上角 10px 数字 |
-| TagRow（词库行） | — | default / hover / selected | 高 34（`--h-row`），padding 0 8，圆角 6 | hover = surface-hover；已在本槽 = brand-soft + 左侧 2px brand 竖线 |
-| OutputBlock | — | default / copied | 圆角 10，padding 10，块间 12 | 正文等宽 12/18，`color-text-1`；块头分隔用 1px 线 |
+| TagRow（词库行） | — | default / hover / selected | 高 34（`--h-row`），padding 0 8，圆角 6 | hover = `--sunken`；已在本槽 = 左侧 **2px** `--accent` 竖条 + `padding-left: 6px`（8−2，**内容起点仍是 8px，零位移**）+ 中文名 `--accent-ink` 500。**不铺底色** |
+| OutputPanel | 页签（MOSS / WAI / PONY） | default / current | 页签高 30 三段等分；`.density` 纯展示、`pointer-events: auto` 以保住 `title` | **一次只渲染一套**，复制入口唯一（「复制正向 · 型号」）；页签无计数、无 hint（hint 移到正文上方 `.hint-line`）；正文等宽 12/**21**（`line-height: 1.75`）、**无 `max-height`、无内滚**；负向块 `--surface` 底 + 2px `--line-2` 左描边，默认收起。`hasContent === false` 时**整条页签条不渲染** |
 | EmptyState | — | — | 居中，图标 26 + 主文 13/500 + 说明 12/text-3 | — |
 | Toast | ok / warn | enter / leave | 高 34，圆角 8，底部 24 | ok = text-1 底白字；warn = warning 底白字（6.04） |
 | Modal / Drawer | — | open / closing | 遮罩 `rgba(34,30,53,.28)` | 唯一允许用 `shadow-overlay` 的地方，且必须带 1px 描边 |
@@ -274,10 +275,28 @@ font-mono-body    → --fs-sm        12px   提示词正文（配合 var(--mono)
 - [ ] 图片有 `alt`，装饰性图片 `alt=""`
 - [ ] `<768` 可点元素命中区 ≥ 44×44
 
-## 10. 待确认
+**第二轮「降疲劳」改版实测（puppeteer + 本机 Edge，1472 / 1280 / 1000 / 760 四档）**
 
-1. **是否需要保留「档位」分段控件的三档视觉差异**？现在三段等宽，用户高频切换；若改成下拉可省 60px 宽。影响：第 6 节 SegmentedControl。
-2. **角色卡是否要恢复显示元素/游戏名**？当前只有图 + 名字（168 个角色里 3 个无图，显示首字色块）。影响：第 6 节 RoleCard 高度。
-3. **词库是否需要「只看已收藏」的常驻筛选项**？现在藏在分类页签里。影响：第 2 节中栏信息架构。
-4. **输出区是否要支持字号切换**（11 / 12）？等宽正文在 1920 宽屏下偏小。影响：第 5.2 节字体表。
-5. **暗色模式是否纳入本次范围**？现有 token 全是浅色单套，加暗色需要第二套表面与描边。影响：第 5.1 节全部颜色。
+- [x] 折叠行恒 34px；首行无顶线；行间单线（由「下一行 top + 上一行 bottom 透明」自然形成）
+- [x] active 竖条 3px，卡片 `top/bottom: 8px` 避开圆角，行形态整行通高，无露角无毛刺
+- [x] 右栏滚动容器 **1 个**；同屏总数 2–3 个（改版前最坏 7 个）
+- [x] 正文 12px / 21px，无 `max-height`、无内滚
+- [x] 词库英文 tag 5.53:1（改版前 4.77:1，被选中行底色拉低；去掉填充后回升）
+- [x] `--ink-3` 5.53:1 白底 / 5.04:1 页面底；`--accent` 5.14 / 4.68
+- [x] 四档视口均无横向溢出、无 `pageerror`、无 console error
+- [x] 页签三段等分、无横向滚动，`.density` 右缘距面板边 10px 未被裁
+- [x] `.box` / `.gsec` 有 `tabindex` + `role="group"` + `aria-label` + `aria-current`；键盘 Enter 能切换落点，焦点环 2px 品牌色贴内侧
+- [x] 折叠行仍是合法 drop target，落点后自动展开
+
+## 10. 未兑现清单
+
+以下三条**不要**在汇报或验收单里写成已完成。
+
+1. **左栏密度两档（大图 3 列 / 紧凑 4 列）从未实现。** `atlasDensity` 在代码里不存在，`.grid` 仍是 `minmax(140px, 1fr)`。所以「168 张卡从 14 屏压到 1–2 屏」**没有达成**，只靠「最近 / 收藏」两条横条降到约 12 屏。
+2. **`.fav` / `.del` 键盘不可达。** `.row` 是 `<button>`，这两个是内嵌 `<span @click.stop>`，既不可聚焦也只在 hover 时显形（缺 `.row:focus-within`）。真正修好要把 `.row` 降为 `div[role="button"][tabindex="0"]`，属结构改动，单独提交。
+3. **三级表面感知上只有两级**（详见 §5.1），它不是缺陷，但也不构成「焦点面板」效果。
+
+## 11. 待确认
+
+1. **「档位」分段控件是否值得为三档保留视觉差异**？现在三段等宽、用户高频切换；改成下拉可省 60px 宽。影响 §6 的 SegmentedControl。
+2. **`.box` / `.gsec` 的 Tab 停留次数**。每个槽一次 + 内部按钮各一次，5 个角色时最多多 5 次停留。这是 WCAG 2.1.1 的代价，已接受；若日后觉得吵，替代方案是只把名字做成聚焦点。
