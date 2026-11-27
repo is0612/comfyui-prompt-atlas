@@ -1,0 +1,292 @@
+:root {
+  --bg: #f2f1f8;
+  --bg-glow: radial-gradient(1200px 600px at 12% -10%, #e9e5ff 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #e4f0ff 0%, transparent 55%);
+  --panel: #ffffff;
+  --sunken: #f7f6fc;
+  --sunken-2: #f1eff9;
+  --line: #e9e6f3;
+  --line-2: #dcd6ee;
+  --ink: #221e35;
+  --ink-2: #5b5674;
+  --ink-3: #918ca6;
+  --ink-4: #b3aec4;
+  --accent: #6355f0;
+  --accent-ink: #4b3ad6;
+  --accent-soft: #efecfe;
+  --accent-line: #d3ccfb;
+  --ok: #0f9d63;
+  --warn: #b9711a;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow-sm: 0 1px 2px rgba(34, 30, 53, 0.05);
+  --shadow-md: 0 10px 28px -14px rgba(34, 30, 53, 0.28);
+  --shadow-lg: 0 28px 70px -28px rgba(34, 30, 53, 0.4);
+  --font: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--bg);
+  background-image: var(--bg-glow);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8d3e8;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c3bcd8;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── 通用件 ─────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s, box-shadow 0.15s;
+}
+
+.btn:hover {
+  background: var(--sunken);
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+
+.btn:active {
+  transform: translateY(0.5px);
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, #7568f6, #5f50ea);
+  border-color: #5344e0;
+  color: #fff;
+  box-shadow: 0 6px 14px -8px rgba(95, 80, 234, 0.9);
+}
+
+.btn.primary:hover {
+  background: linear-gradient(180deg, #6d60f4, #5546e2);
+  color: #fff;
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn.ghost:hover {
+  background: var(--sunken-2);
+}
+
+.btn.sm {
+  height: 26px;
+  padding: 0 9px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+
+.btn.on {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-3);
+  transition: background 0.15s, color 0.15s;
+}
+
+.icon-btn:hover {
+  background: var(--sunken-2);
+  color: var(--ink);
+}
+
+.seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--sunken);
+}
+
+.seg button {
+  height: 26px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.seg button:hover {
+  color: var(--ink-2);
+}
+
+.seg button.on {
+  background: #fff;
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fff, #fcfbff);
+}
+
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.panel-title small {
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.4px;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 44px 20px;
+  color: var(--ink-3);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+/* 全屏遮罩。⚠️ 刻意不用 backdrop-filter：全屏模糊在滚轮、入场过渡和
+   背后内容重绘时都要整屏重算，抽屉里滚动会明显掉帧。加透明度就够压住背景了 */
+.mask {
+  background: rgba(28, 24, 45, 0.3);
+}
+
+/* 抽屉 / 弹窗共用的淡入。只动 opacity，别在这个祖先上挂 filter/transform */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.24s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease;
+  will-change: transform;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(24px);
+  opacity: 0;
+}
