@@ -14,7 +14,8 @@ interface NegSet {
   clone: string[]
 }
 
-const NEG: Record<Target, NegSet> = {
+/** 每个目标的基础负向词表。导出是为了让测试能检查「规则引用的词是否真实存在」 */
+export const NEG: Record<Target, NegSet> = {
   moss: {
     base: ['低质量', '最差质量', '粗糙线条', '模糊', '噪点', '过曝', '画面裁切', '水印', '文字', '签名', '标志'],
     anatomy: ['畸形', '比例失调', '多余的手指', '缺失的手指', '错位的肢体'],
@@ -39,10 +40,9 @@ const NEG: Record<Target, NegSet> = {
   },
 }
 
-/** 正向命中左侧条件时，从负向里剔除右侧的词 */
-const CONFLICT_RULES: { test: RegExp; drop: string[] }[] = [
+/** 正向命中左侧条件时，从负向里剔除右侧的词。导出理由同上 */
+export const CONFLICT_RULES: { test: RegExp; drop: string[] }[] = [
   { test: /chibi|super_deformed/, drop: ['bad anatomy', 'bad proportions', 'deformed', 'bad hands', 'extra fingers', 'fewer fingers', '畸形', '比例失调', '多余的手指', '缺失的手指'] },
-  { test: /from_behind/, drop: ['looking_at_viewer'] },
   { test: /no_humans|scenery/, drop: ['bad hands', 'extra fingers', 'fewer fingers', '多余的手指', '缺失的手指'] },
 ]
 
@@ -75,6 +75,18 @@ function capTags(list: SlotTag[], limit: number, density: Density): SlotTag[] {
   return density === 'lite' ? list.slice(0, limit) : list
 }
 
+/**
+ * 去掉负向词的权重写法：`(bad anatomy:1.2)` → `bad anatomy`。
+ * Pony 的词表里带权重，不剥掉的话自适应规则永远匹配不中，形同虚设。
+ */
+function plainNeg(token: string): string {
+  return token
+    .toLowerCase()
+    .replace(/^\(+/, '')
+    .replace(/:\s*[\d.]+\)+$/, '')
+    .replace(/\)+$/, '')
+}
+
 function buildNegative(target: Target, positiveTokens: string[], settings: Settings, charCount: number): string {
   const set = NEG[target]
   let list = [...set.base, ...set.anatomy]
@@ -83,7 +95,7 @@ function buildNegative(target: Target, positiveTokens: string[], settings: Setti
     const joined = positiveTokens.join(', ').toLowerCase()
     for (const rule of CONFLICT_RULES) {
       if (!rule.test.test(joined)) continue
-      list = list.filter((token) => !rule.drop.includes(token.toLowerCase()))
+      list = list.filter((token) => !rule.drop.includes(plainNeg(token)))
     }
   }
   return dedupe(list).join(target === 'moss' ? '，' : ', ')

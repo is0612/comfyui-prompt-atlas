@@ -4,10 +4,16 @@ import BaseIcon from './BaseIcon.vue'
 import { allCharacters, games, notify, removeCharacter, saveCharacter, ui } from '../store'
 import type { Character } from '../types'
 
-const blank = (): Character => ({
+/**
+ * 新建角色的空表单。键集合是「除 avatar 外的全部字段」——
+ * 给 Character 加字段却忘了补这里，编译会报错。
+ * avatar 不在里面，是因为它只能来自数据文件或导入（界面上没有选图入口），
+ * 新建的角色默认显示首字色块。
+ */
+const BLANK: Record<Exclude<keyof Required<Character>, 'avatar'>, string> = {
   zh: '',
   en: '',
-  game: games.value[0] ?? '',
+  game: '',
   body: '',
   hair: '',
   eyes: '',
@@ -15,7 +21,9 @@ const blank = (): Character => ({
   traits: '',
   tags: '',
   note: '',
-})
+}
+
+const blank = (): Character => ({ ...BLANK, game: games.value[0] ?? '' })
 
 const form = ref<Character>(blank())
 const isEdit = computed(() => Boolean(ui.editing))

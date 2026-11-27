@@ -249,11 +249,13 @@ export function moveSlotTag(from: string, to: string, en: string) {
   const source = slotTags(from)
   const index = source.findIndex((t) => t.en === en)
   if (index < 0) return
-  const [tag] = source.splice(index, 1)
-  if (!tag) return
   if (to && !charTags.value[to]) charTags.value[to] = []
   const target = slotTags(to)
+  // 目标已经有同一个标签就直接不动。检查必须在 splice 之前 ——
+  // 否则源槽的标签已经被删掉，目标又不收，这个标签就凭空消失了
   if (target.some((t) => t.en === en)) return
+  const [tag] = source.splice(index, 1)
+  if (!tag) return
   enforceExclusive(target, tag)
   enforceHands(target, tag)
   target.push(tag)

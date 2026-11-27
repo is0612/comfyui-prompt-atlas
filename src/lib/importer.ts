@@ -19,8 +19,19 @@ const ALIASES: Record<string, keyof Character> = {
   note: 'note', 备注: 'note',
 }
 
-/** 除 zh / en / game 之外，按别名表搬运的字段 */
-const FIELDS: (keyof Character)[] = ['body', 'hair', 'eyes', 'outfit', 'traits', 'tags', 'avatar', 'note']
+type OptionalField = Exclude<keyof Character, 'zh' | 'en' | 'game'>
+
+/** 除 zh / en / game 之外、需要按别名表搬运的字段 */
+const FIELDS = ['body', 'hair', 'eyes', 'outfit', 'traits', 'tags', 'avatar', 'note'] as const satisfies readonly OptionalField[]
+
+type MissingField = Exclude<OptionalField, (typeof FIELDS)[number]>
+
+/**
+ * 编译期完备性检查：给 Character 加了字段却忘了登记进 FIELDS，这里会变成 `false`
+ * 而赋值 `true` 报错，`npm run build` 直接失败。
+ * 比等到用户「导出再导入丢字段」才发现便宜得多（avatar 就这么丢过一次）。
+ */
+export const FIELDS_COVER_ALL: [MissingField] extends [never] ? true : false = true
 
 function fieldOf(key: string): keyof Character | null {
   const clean = key.trim().toLowerCase().replace(/[\s_-]/g, '')
